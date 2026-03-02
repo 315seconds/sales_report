@@ -12,27 +12,26 @@ if [ -d "$ROOT" ]; then
   for d in $(ls -1 "$ROOT" | sort -r); do
     if [ -f "$ROOT/$d/index.html" ]; then
 
-      # 기본값
+      # d = 2026-02-04_2026-02-09_chabot  또는  2026-03-10_hongdae
       BADGES=""
       TITLE="$d"
 
-      # d를 _로 분해
       IFS="_" read -r A B C <<< "$d"
 
-      # 케이스1) 시작_끝_지점 (A,B,C 모두 존재)
       if [[ "$A" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [[ "$B" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [ -n "$C" ]; then
         PERIOD="${A} ~ ${B}"
         STORE="$C"
         BADGES="<span class='badge period'>${PERIOD}</span><span class='badge store'>${STORE}</span>"
         TITLE="$STORE"
-      # 케이스2) 날짜_지점 (A,B 존재, B가 날짜가 아니면 지점으로)
       elif [[ "$A" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [ -n "$B" ] && ! [[ "$B" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
         BADGES="<span class='badge period'>${A}</span><span class='badge store'>${B}</span>"
         TITLE="$B"
       fi
 
+      META_URL="${BASE_URL}/popup/${d}/meta.json"
+
       CARDS="${CARDS}
-      <a class='card' href='${BASE_URL}/popup/${d}/' data-name='${d}'>
+      <a class='card' href='${BASE_URL}/popup/${d}/' data-name='${d}' data-meta='${META_URL}'>
         <div class='top'>
           <div class='title'>${TITLE}</div>
           <div class='badges'>${BADGES}</div>
@@ -51,38 +50,75 @@ cat > docs/index.html << EOF
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Popup Report Archive</title>
   <style>
+    /* ✅ 배경: 귀여운 파스텔 + 과하지 않은 블롭(칸 나뉜 그라데이션 제거) */
     :root{
-      --bg:#0b0f19;
-      --card:#ffffff;
+      --bg:#fbfbff;
+      --ink:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
+      --card:#ffffff;
+
+      --p1: rgba(255, 179, 186, 0.22); /* 연핑크 */
+      --p2: rgba(186, 225, 255, 0.22); /* 연하늘 */
+      --p3: rgba(255, 223, 186, 0.18); /* 연살구 */
+      --p4: rgba(186, 255, 201, 0.18); /* 연민트 */
     }
+
     body{
       margin:0;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif;
-      background: radial-gradient(1200px 800px at 10% -10%, rgba(124,58,237,0.35), transparent 60%),
-                  radial-gradient(1200px 800px at 90% 0%, rgba(59,130,246,0.25), transparent 55%),
-                  #0b0f19;
-      color:#fff;
+      background: var(--bg);
+      color: var(--ink);
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:26px 18px 40px;}
+
+    .bg{
+      position:fixed; inset:0; pointer-events:none; z-index:-1;
+      overflow:hidden;
+    }
+    .blob{
+      position:absolute; border-radius:999px; filter: blur(40px);
+      transform: translate3d(0,0,0);
+    }
+    .b1{ width:520px; height:520px; left:-180px; top:-220px; background: var(--p1); }
+    .b2{ width:560px; height:560px; right:-220px; top:-240px; background: var(--p2); }
+    .b3{ width:520px; height:520px; left:-160px; bottom:-240px; background: var(--p4); }
+    .b4{ width:520px; height:520px; right:-200px; bottom:-260px; background: var(--p3); }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:26px 18px 46px;}
     .header{
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(229,231,235,0.9);
       border-radius: 18px;
       padding: 18px 18px;
-      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(17,24,39,0.06);
+      backdrop-filter: blur(8px);
     }
     h1{margin:0;font-size:22px;letter-spacing:-0.2px}
-    .sub{margin-top:6px;color:rgba(255,255,255,0.72);font-size:13px;line-height:1.4}
+    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4}
+
+    /* ✅ 요약멘트 영역 */
+    .summary{
+      margin-top:12px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(229,231,235,0.9);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: 0 10px 30px rgba(17,24,39,0.05);
+    }
+    .summary h2{margin:0 0 8px;font-size:14px}
+    .summary ul{margin:0;padding-left:18px;color:#111827}
+    .summary li{margin:6px 0;font-size:13px}
+    .summary .hint{margin-top:8px;color:var(--muted);font-size:12px}
 
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 14px}
     .search{
       flex:1 1 280px;
       background:#fff;border-radius:14px;
-      padding:12px 12px;border:0;outline:none;
+      padding:12px 12px;border:1px solid rgba(229,231,235,0.9);outline:none;
       font-size:14px;color:#111;
+      box-shadow: 0 8px 20px rgba(17,24,39,0.04);
     }
+
     .grid{
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -92,15 +128,15 @@ cat > docs/index.html << EOF
     .card{
       display:block;
       text-decoration:none;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.92);
       color:#111;
       border-radius: 18px;
       padding: 14px 16px;
-      border: 1px solid rgba(255,255,255,0.65);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+      border: 1px solid rgba(229,231,235,0.9);
+      box-shadow: 0 12px 30px rgba(17,24,39,0.06);
       transition: transform .12s ease, box-shadow .12s ease;
     }
-    .card:hover{ transform: translateY(-2px); box-shadow: 0 14px 40px rgba(0,0,0,0.26); }
+    .card:hover{ transform: translateY(-2px); box-shadow: 0 16px 40px rgba(17,24,39,0.10); }
     .top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;}
     .title{font-weight:900;font-size:16px;letter-spacing:-0.1px}
     .meta{margin-top:8px;color:#6b7280;font-size:12px;word-break:break-all}
@@ -121,21 +157,35 @@ cat > docs/index.html << EOF
 
     .empty{
       margin-top:14px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(229,231,235,0.9);
       border-radius: 18px;
       padding: 14px 16px;
-      color: rgba(255,255,255,0.75);
+      color: var(--muted);
       font-size: 13px;
       display:none;
     }
   </style>
 </head>
+
 <body>
+  <div class="bg">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div>
+  </div>
+
   <div class="wrap">
     <div class="header">
       <h1>📊 Popup Report Archive</h1>
-      <div class="sub">기간/지점 뱃지를 자동으로 표시합니다. 검색창에서 빠르게 찾을 수 있어요.</div>
+      <div class="sub">리포트를 누적 저장하고, 홈에서 한눈에 찾을 수 있어요.</div>
+    </div>
+
+    <!-- ✅ 자동 요약멘트 -->
+    <div class="summary">
+      <h2>✨ 이번 주 한 줄 요약</h2>
+      <ul id="summaryList">
+        <li>요약을 불러오는 중…</li>
+      </ul>
+      <div class="hint">* meta.json 기반 자동 요약 (리포트 업로드 시 함께 생성됨)</div>
     </div>
 
     <div class="controls">
@@ -154,7 +204,7 @@ cat > docs/index.html << EOF
     const cards = Array.from(document.querySelectorAll('.card'));
     const empty = document.getElementById('empty');
 
-    function run(){
+    function runFilter(){
       const s = (q.value || '').toLowerCase().trim();
       let shown = 0;
       for(const c of cards){
@@ -165,11 +215,93 @@ cat > docs/index.html << EOF
       }
       empty.style.display = (shown === 0) ? '' : 'none';
     }
-    q.addEventListener('input', run);
-    run();
+    q.addEventListener('input', runFilter);
+    runFilter();
+
+    // ✅ meta.json 모아서 요약멘트 자동 생성
+    const summaryList = document.getElementById('summaryList');
+
+    function fmtMoney(n){
+      try { return n.toLocaleString('ko-KR'); } catch(e){ return String(n); }
+    }
+
+    // 국가코드 -> 이모지(자주 쓰는 것만)
+    const flagMap = {
+      CN: "🇨🇳", JP: "🇯🇵", US: "🇺🇸", TW: "🇹🇼", HK: "🇭🇰", SG: "🇸🇬", TH: "🇹🇭", VN: "🇻🇳"
+    };
+
+    async function loadMetas(){
+      const urls = cards.map(c => c.dataset.meta).filter(Boolean);
+      // 최근 것(카드 순서) 기준 상위 N개만 집계 (원하면 3~5)
+      const N = Math.min(10, urls.length);
+
+      const metas = [];
+      for (let i=0; i<N; i++){
+        try{
+          const r = await fetch(urls[i], {cache: "no-store"});
+          if(!r.ok) continue;
+          const j = await r.json();
+          metas.push(j);
+        }catch(e){}
+      }
+      return metas;
+    }
+
+    function pickTopCountry(metas){
+      const counts = {};
+      for(const m of metas){
+        const c = (m.top_country || "UNK").toUpperCase();
+        if(c === "UNK") continue;
+        counts[c] = (counts[c] || 0) + 1;
+      }
+      let best = null, bestN = 0;
+      for(const [k,v] of Object.entries(counts)){
+        if(v > bestN){ best = k; bestN = v; }
+      }
+      return best;
+    }
+
+    async function buildSummary(){
+      const metas = await loadMetas();
+
+      if(metas.length === 0){
+        summaryList.innerHTML = "<li>아직 요약할 리포트가 없어요. 첫 리포트를 올려주세요 ✨</li>";
+        return;
+      }
+
+      const popupCount = metas.length;
+      const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / popupCount;
+      const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
+
+      const topCountry = pickTopCountry(metas);
+      const flag = topCountry ? (flagMap[topCountry] || "🌏") : "🌏";
+
+      // 피크타임은 meta에 아직 없어서(추가 가능), 일단 멘트 템플릿만 유지
+      // 원하면 meta.json에 peak_hour 넣어서 완전 자동화 가능!
+      const peakHour = null;
+
+      const lines = [];
+      // 네가 원하는 스타일 그대로 반영
+      lines.push(`최근 팝업 ${popupCount}개 종료! 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
+      if(topCountry){
+        lines.push(`요즘 우리를 제일 사랑해준 국가는 ${topCountry} ${flag} 🫶`);
+      }else{
+        lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
+      }
+      if(peakHour !== null){
+        lines.push(`피크타임은 ${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
+      }else{
+        lines.push(`피크타임은 리포트에서 확인해봐요! (다음 단계로 자동화 가능 🔥)`);
+      }
+      lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
+
+      summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
+    }
+
+    buildSummary();
   </script>
 </body>
 </html>
 EOF
 
-echo "✅ rebuilt docs/index.html (badges)"
+echo "✅ rebuilt docs/index.html (cute bg + badges + auto summary)"
