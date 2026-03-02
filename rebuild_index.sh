@@ -6,23 +6,28 @@ ROOT="docs/popup"
 
 mkdir -p docs
 
+# ----------------------------
+# 1) 카드 HTML 만들기
+# ----------------------------
 CARDS=""
 
 if [ -d "$ROOT" ]; then
   for d in $(ls -1 "$ROOT" | sort -r); do
     if [ -f "$ROOT/$d/index.html" ]; then
 
-      # d = 2026-02-04_2026-02-09_chabot  또는  2026-03-10_hongdae
       BADGES=""
       TITLE="$d"
 
+      # d = 2026-02-04_2026-02-09_chabot  또는  2026-03-10_hongdae
       IFS="_" read -r A B C <<< "$d"
 
+      # start_end_store
       if [[ "$A" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [[ "$B" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [ -n "$C" ]; then
         PERIOD="${A} ~ ${B}"
         STORE="$C"
         BADGES="<span class='badge period'>${PERIOD}</span><span class='badge store'>${STORE}</span>"
         TITLE="$STORE"
+      # end_store (fallback)
       elif [[ "$A" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [ -n "$B" ] && ! [[ "$B" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
         BADGES="<span class='badge period'>${A}</span><span class='badge store'>${B}</span>"
         TITLE="$B"
@@ -31,17 +36,20 @@ if [ -d "$ROOT" ]; then
       META_URL="${BASE_URL}/popup/${d}/meta.json"
 
       CARDS="${CARDS}
-      <a class='card' href='${BASE_URL}/popup/${d}/' data-name='${d}' data-meta='${META_URL}'>
-        <div class='top'>
-          <div class='title'>${TITLE}</div>
-          <div class='badges'>${BADGES}</div>
-        </div>
-        <div class='meta'>${d}</div>
-      </a>"
+<a class='card' href='${BASE_URL}/popup/${d}/' data-name='${d}' data-meta='${META_URL}'>
+  <div class='top'>
+    <div class='title'>${TITLE}</div>
+    <div class='badges'>${BADGES}</div>
+  </div>
+  <div class='meta'>${d}</div>
+</a>"
     fi
   done
 fi
 
+# ----------------------------
+# 2) 템플릿 HTML 생성 (bash 변수치환 OFF)
+# ----------------------------
 cat > docs/index.html << 'EOF'
 <!doctype html>
 <html lang="ko">
@@ -50,18 +58,17 @@ cat > docs/index.html << 'EOF'
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Popup Report Archive</title>
   <style>
-    /* ✅ 배경: 귀여운 파스텔 + 과하지 않은 블롭(칸 나뉜 그라데이션 제거) */
     :root{
       --bg:#fbfbff;
       --ink:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
-      --card:#ffffff;
 
-      --p1: rgba(255, 179, 186, 0.22); /* 연핑크 */
-      --p2: rgba(186, 225, 255, 0.22); /* 연하늘 */
-      --p3: rgba(255, 223, 186, 0.18); /* 연살구 */
-      --p4: rgba(186, 255, 201, 0.18); /* 연민트 */
+      /* 귀여운 파스텔 블롭 */
+      --p1: rgba(255, 179, 186, 0.22);
+      --p2: rgba(186, 225, 255, 0.22);
+      --p3: rgba(255, 223, 186, 0.18);
+      --p4: rgba(186, 255, 201, 0.18);
     }
 
     body{
@@ -71,14 +78,8 @@ cat > docs/index.html << 'EOF'
       color: var(--ink);
     }
 
-    .bg{
-      position:fixed; inset:0; pointer-events:none; z-index:-1;
-      overflow:hidden;
-    }
-    .blob{
-      position:absolute; border-radius:999px; filter: blur(40px);
-      transform: translate3d(0,0,0);
-    }
+    .bg{position:fixed; inset:0; pointer-events:none; z-index:-1; overflow:hidden;}
+    .blob{position:absolute; border-radius:999px; filter: blur(40px); transform: translate3d(0,0,0);}
     .b1{ width:520px; height:520px; left:-180px; top:-220px; background: var(--p1); }
     .b2{ width:560px; height:560px; right:-220px; top:-240px; background: var(--p2); }
     .b3{ width:520px; height:520px; left:-160px; bottom:-240px; background: var(--p4); }
@@ -96,7 +97,6 @@ cat > docs/index.html << 'EOF'
     h1{margin:0;font-size:22px;letter-spacing:-0.2px}
     .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4}
 
-    /* ✅ 요약멘트 영역 */
     .summary{
       margin-top:12px;
       background: rgba(255,255,255,0.88);
@@ -179,7 +179,6 @@ cat > docs/index.html << 'EOF'
       <div class="sub">리포트를 누적 저장하고, 홈에서 한눈에 찾을 수 있어요.</div>
     </div>
 
-    <!-- ✅ 자동 요약멘트 -->
     <div class="summary">
       <h2>✨ 이번 주 한 줄 요약</h2>
       <ul id="summaryList">
@@ -193,144 +192,141 @@ cat > docs/index.html << 'EOF'
     </div>
 
     <div id="grid" class="grid">
-      __CARDS__
+__CARDS__
     </div>
 
     <div id="empty" class="empty">검색 결과가 없습니다.</div>
   </div>
 
- <script>
-  const q = document.getElementById('q');
-  const cards = Array.from(document.querySelectorAll('.card'));
-  const empty = document.getElementById('empty');
+  <script>
+    const q = document.getElementById('q');
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const empty = document.getElementById('empty');
 
-  function runFilter(){
-    const s = (q.value || '').toLowerCase().trim();
-    let shown = 0;
-    for(const c of cards){
-      const name = (c.dataset.name || '').toLowerCase();
-      const ok = !s || name.includes(s);
-      c.style.display = ok ? '' : 'none';
-      if(ok) shown++;
-    }
-    empty.style.display = (shown === 0) ? '' : 'none';
-  }
-  q.addEventListener('input', runFilter);
-  runFilter();
-
-  // ✅ meta.json 모아서 요약멘트 자동 생성 (진짜 값 기반)
-  const summaryList = document.getElementById('summaryList');
-
-  function fmtMoney(n){
-    const x = Number(n) || 0;
-    try { return x.toLocaleString('ko-KR'); } catch(e){ return String(x); }
-  }
-
-  const flagMap = {
-    CN: "🇨🇳", JP: "🇯🇵", US: "🇺🇸", TW: "🇹🇼", HK: "🇭🇰", SG: "🇸🇬", TH: "🇹🇭", VN: "🇻🇳"
-  };
-
-  async function loadMetas(){
-    const urls = cards.map(c => c.dataset.meta).filter(Boolean);
-    // 최근 리포트 상위 N개만 집계 (요청한 문구가 “최근 팝업 3개”면 3 추천)
-    const N = Math.min(10, urls.length);
-
-    const metas = [];
-    for (let i=0; i<N; i++){
-      try{
-        const r = await fetch(urls[i], {cache: "no-store"});
-        if(!r.ok) continue;
-        const j = await r.json();
-        metas.push(j);
-      }catch(e){}
-    }
-    return metas;
-  }
-
-  function pickTopBySum(mapObj){
-    // mapObj: {key: sumValue}
-    let best = null;
-    let bestV = -Infinity;
-    for(const [k,v] of Object.entries(mapObj)){
-      const nv = Number(v) || 0;
-      if(nv > bestV){
-        bestV = nv;
-        best = k;
+    function runFilter(){
+      const s = (q.value || '').toLowerCase().trim();
+      let shown = 0;
+      for(const c of cards){
+        const name = (c.dataset.name || '').toLowerCase();
+        const ok = !s || name.includes(s);
+        c.style.display = ok ? '' : 'none';
+        if(ok) shown++;
       }
+      empty.style.display = (shown === 0) ? '' : 'none';
     }
-    return {key: best, value: bestV};
-  }
+    q.addEventListener('input', runFilter);
+    runFilter();
 
-  async function buildSummary(){
-    const metasAll = await loadMetas();
+    // ----- 진짜 값(meta.json) 기반 요약 -----
+    const summaryList = document.getElementById('summaryList');
 
-    if(metasAll.length === 0){
-      summaryList.innerHTML = "<li>아직 요약할 리포트가 없어요. 첫 리포트를 올려주세요 ✨</li>";
-      return;
+    function fmtMoney(n){
+      const x = Number(n) || 0;
+      try { return x.toLocaleString('ko-KR'); } catch(e){ return String(x); }
     }
 
-    // ✅ “최근 팝업 3개 종료!” 고정 문구 원하면 3개로 제한
-    const metas = metasAll.slice(0, Math.min(3, metasAll.length));
-    const popupCount = metas.length;
+    const flagMap = { CN:"🇨🇳", JP:"🇯🇵", US:"🇺🇸", TW:"🇹🇼", HK:"🇭🇰", SG:"🇸🇬", TH:"🇹🇭", VN:"🇻🇳" };
 
-    // 평균 해외 비중(진짜)
-    const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / popupCount;
-
-    // 총매출 합계(진짜)
-    const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
-
-    // 국가 1등(진짜): top_country_sales를 국가별로 합산해서 1등
-    const countrySales = {};
-    for(const m of metas){
-      const c = String(m.top_country || "UNK").toUpperCase();
-      const s = Number(m.top_country_sales) || 0;
-      if(c !== "UNK" && s > 0){
-        countrySales[c] = (countrySales[c] || 0) + s;
+    async function loadMetas(){
+      const urls = cards.map(c => c.dataset.meta).filter(Boolean);
+      const N = Math.min(10, urls.length); // 최근 상위 10개까지만 fetch
+      const metas = [];
+      for(let i=0;i<N;i++){
+        try{
+          const r = await fetch(urls[i], {cache:"no-store"});
+          if(!r.ok) continue;
+          metas.push(await r.json());
+        }catch(e){}
       }
+      return metas;
     }
-    const topCountryObj = pickTopBySum(countrySales);
-    const topCountry = topCountryObj.key;
-    const topCountryFlag = topCountry ? (flagMap[topCountry] || "🌏") : "🌏";
 
-    // 피크타임(진짜): peak_sales를 hour별로 합산해서 1등 hour
-    const hourSales = {};
-    for(const m of metas){
-      const h = m.peak_hour;
-      const s = Number(m.peak_sales) || 0;
-      if(h !== null && h !== undefined && s > 0){
-        const key = String(h);
-        hourSales[key] = (hourSales[key] || 0) + s;
+    function pickTopBySum(mapObj){
+      let best=null, bestV=-Infinity;
+      for(const [k,v] of Object.entries(mapObj)){
+        const nv = Number(v) || 0;
+        if(nv > bestV){ bestV = nv; best = k; }
       }
-    }
-    const topHourObj = pickTopBySum(hourSales);
-    const peakHour = topHourObj.key !== null ? Number(topHourObj.key) : null;
-
-    // ✅ 네가 원하는 문구 그대로 (진짜 값만 삽입)
-    const lines = [];
-    lines.push(`최근 종료된 팝업 \${popupCount}개를 한입에 요약했어요 ✨ 평균 해외 비중은 \${(avgForeign*100).toFixed(1)}% 🌍✨`);
-
-    if(topCountry){
-    lines.push(`요즘 우리를 제일 사랑해준 국가는 \${topCountry} \${topCountryFlag} 🫶`);
-    }else{
-    lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
+      return {key: best, value: bestV};
     }
 
-    if(peakHour !== null && !Number.isNaN(peakHour)){
-    lines.push(`피크타임은 \${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
-    }else{
-    lines.push(`피크타임은 집계 중이에요 🔥`);
-}
+    async function buildSummary(){
+      const metasAll = await loadMetas();
+      if(metasAll.length === 0){
+        summaryList.innerHTML = "<li>아직 요약할 리포트가 없어요. 첫 리포트를 올려주세요 ✨</li>";
+        return;
+      }
 
-lines.push(`총매출 합계 \${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
+      // 최근 종료된 팝업 n개 기준 (현재 3개)
+      const metas = metasAll.slice(0, Math.min(3, metasAll.length));
+      const popupCount = metas.length;
 
-// ✅ 여기도 중요: bash가 ${x}를 먹어버리니 \${x}로
-summaryList.innerHTML = lines.map(x => `<li>\${x}</li>`).join("");
-  }
+      const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / popupCount;
+      const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
 
-  buildSummary();
-</script>
+      // 국가 1등(매출 합산)
+      const countrySales = {};
+      for(const m of metas){
+        const c = String(m.top_country || "UNK").toUpperCase();
+        const s = Number(m.top_country_sales) || 0;
+        if(c !== "UNK" && s > 0) countrySales[c] = (countrySales[c]||0) + s;
+      }
+      const topCountryObj = pickTopBySum(countrySales);
+      const topCountry = topCountryObj.key;
+      const topCountryFlag = topCountry ? (flagMap[topCountry] || "🌏") : "🌏";
+
+      // 피크타임 1등(매출 합산)
+      const hourSales = {};
+      for(const m of metas){
+        const h = m.peak_hour;
+        const s = Number(m.peak_sales) || 0;
+        if(h !== null && h !== undefined && s > 0){
+          const key = String(h);
+          hourSales[key] = (hourSales[key]||0) + s;
+        }
+      }
+      const topHourObj = pickTopBySum(hourSales);
+      const peakHour = topHourObj.key !== null ? Number(topHourObj.key) : null;
+
+      const lines = [];
+      lines.push(`최근 종료된 팝업 ${popupCount}개를 한입에 요약했어요 ✨ 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
+
+      if(topCountry){
+        lines.push(`요즘 우리를 제일 사랑해준 국가는 ${topCountry} ${topCountryFlag} 🫶`);
+      }else{
+        lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
+      }
+
+      if(peakHour !== null && !Number.isNaN(peakHour)){
+        lines.push(`피크타임은 ${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
+      }else{
+        lines.push(`피크타임은 집계 중이에요 🔥`);
+      }
+
+      lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
+
+      summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
+    }
+
+    buildSummary();
+  </script>
 </body>
 </html>
 EOF
-sed -i '' "s|__CARDS__|$CARDS|g" docs/index.html
-echo "✅ rebuilt docs/index.html (cute bg + badges + auto summary)"
+
+# ----------------------------
+# 3) __CARDS__ 플레이스홀더에 카드 삽입
+#    (특수문자/슬래시 안전하게 python으로 치환)
+# ----------------------------
+printf "%s" "$CARDS" > .cards.tmp
+
+python3 - << 'PY'
+from pathlib import Path
+html = Path("docs/index.html").read_text(encoding="utf-8")
+cards = Path(".cards.tmp").read_text(encoding="utf-8")
+Path("docs/index.html").write_text(html.replace("__CARDS__", cards), encoding="utf-8")
+PY
+
+rm -f .cards.tmp
+
+echo "✅ rebuilt docs/index.html (final complete)"
