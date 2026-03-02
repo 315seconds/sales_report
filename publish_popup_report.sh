@@ -72,18 +72,25 @@ fi
 # -----------------------------------------
 mkdir -p "docs/popup/$FOLDER"
 
-if [ -f "docs/popup/$FOLDER/index.html" ]; then
+TARGET="docs/popup/$FOLDER/index.html"
+
+if [ -f "$TARGET" ]; then
   echo "⚠️ 이미 같은 폴더($FOLDER)에 리포트가 있습니다. 덮어씁니다."
 fi
 
-cp "$REPORT_PATH" "docs/popup/$FOLDER/index.html"
+if [ "$REPORT_PATH" = "$TARGET" ]; then
+  echo "ℹ️ 동일 파일 경로라 복사 생략"
+else
+  cp "$REPORT_PATH" "$TARGET"
+fi
+
 
 # -----------------------------------------
 # meta.json 생성
 # - 폴더명에서 start/end/store 파싱
 # - HTML에서 총매출/국내비중/해외비중/해외TOP국가(가능하면) 추출
 # -----------------------------------------
-python3 - << 'PY'
+python3 - "$FOLDER" "docs/popup/$FOLDER/index.html" << 'PY'
 import json, re, sys, os
 
 folder = sys.argv[1]
@@ -116,7 +123,6 @@ def strip_pct(s, default=0.0):
     except:
         return default
 
-# KPI에서 뽑기
 def find_first(patterns):
     for pat in patterns:
         m = re.search(pat, html, re.I)
@@ -138,39 +144,29 @@ dom_share = strip_pct(find_first([
     r"국내 비중</div>\s*<div class=\"v\">([^<]+)</div>",
 ]), 0.0)
 
-# --- Peak Time TOP3 표에서 1등 시간/매출 추출 ---
-# v5 HTML: "Peak Time TOP3 (by sales)" 카드 안 table
+# Peak Time TOP3 1등
 peak_hour = None
 peak_sales = 0
-
 m = re.search(r"Peak Time TOP3.*?<table.*?</table>", html, re.S|re.I)
 if m:
     table = m.group(0)
-    # 첫 데이터 행의 <td>들 가져오기
-    # (열: 시간 / 총매출 / 거래건수)
     row = re.search(r"<tr>\s*<td[^>]*>\s*([0-9]{1,2})\s*</td>\s*<td[^>]*>\s*([^<]+)\s*</td>", table, re.S|re.I)
     if row:
         peak_hour = int(row.group(1))
         peak_sales = strip_int(row.group(2), 0)
 
-# --- Foreign Countries 표에서 1등 국가/매출 추출 ---
+# Foreign Countries 1등(가능하면)
 top_country = "UNK"
 top_country_sales = 0
-
 m = re.search(r"<h2>Foreign Countries</h2>.*?<table.*?</table>", html, re.S|re.I)
 if m:
     table = m.group(0)
-    # 첫 데이터행: 국가코드가 첫 td에 들어가는 구조를 가정 (v5는 국가코드 컬럼이 있거나 2글자 코드가 등장)
-    # 1) 우선 2글자 국가코드를 첫 td에서 찾기
-    row = re.search(r"<tr>\s*<td[^>]*>\s*([A-Z]{2})\s*</td>.*?<td[^>]*>\s*([^<]+)\s*</td>", table, re.S|re.I)
-    if row:
-        top_country = row.group(1)
-        # 두 번째 td가 매출이 아닐 수도 있어서, 표 안에서 "총매출"처럼 보이는 큰 숫자를 우선 추출
-        # 가장 먼저 나오는 큰 숫자를 top_country_sales로 가정
-        nums = re.findall(r"<td[^>]*>\s*([0-9][0-9,]+)\s*</td>", table)
-        # 보통 첫 큰 숫자가 매출일 가능성 높음
-        if nums:
-            top_country_sales = strip_int(nums[0], 0)
+    m2 = re.search(r"<td>\s*([A-Z]{2})\s*</td>", table)
+    if m2:
+        top_country = m2.group(1)
+    nums = re.findall(r"<td[^>]*>\s*([0-9][0-9,]+)\s*</td>", table)
+    if nums:
+        top_country_sales = strip_int(nums[0], 0)
 
 meta = {
     "folder": folder,
@@ -191,8 +187,7 @@ with open(out_path, "w", encoding="utf-8") as f:
     json.dump(meta, f, ensure_ascii=False, indent=2)
 
 print("✅ meta.json written:", out_path)
-PY \
-"$FOLDER" "docs/popup/$FOLDER/index.html"
+PY
 
 # -----------------------------------------
 # 아카이브 홈 재생성
