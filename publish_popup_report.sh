@@ -89,66 +89,88 @@ import json, re, sys, os
 folder = sys.argv[1]
 html_path = sys.argv[2]
 
-# 폴더명 파싱: start_end_store
+# 폴더명: start_end_store
 start=end=store=""
 parts = folder.split("_")
 if len(parts) >= 3 and re.match(r"\d{4}-\d{2}-\d{2}", parts[0]) and re.match(r"\d{4}-\d{2}-\d{2}", parts[1]):
     start, end = parts[0], parts[1]
     store = "_".join(parts[2:])
 elif len(parts) >= 2:
-    # fallback: end_store
-    end = parts[0]
-    start = end
+    end = parts[0]; start = end
     store = "_".join(parts[1:])
 else:
     store = folder
 
 html = open(html_path, "r", encoding="utf-8", errors="ignore").read()
 
-def parse_money(patterns, default=0):
+def strip_int(s, default=0):
+    if s is None: return default
+    s = re.sub(r"[^0-9]", "", str(s))
+    return int(s) if s else default
+
+def strip_pct(s, default=0.0):
+    if s is None: return default
+    s = str(s).replace("%","").strip()
+    try:
+        return float(s)/100.0
+    except:
+        return default
+
+# KPI에서 뽑기
+def find_first(patterns):
     for pat in patterns:
         m = re.search(pat, html, re.I)
-        if m:
-            s = m.group(1)
-            s = re.sub(r"[^0-9]", "", s)
-            return int(s) if s else default
-    return default
+        if m: return m.group(1)
+    return None
 
-def parse_pct(patterns, default=0.0):
-    for pat in patterns:
-        m = re.search(pat, html, re.I)
-        if m:
-            s = m.group(1).replace("%","").strip()
-            try:
-                return float(s)/100.0
-            except:
-                pass
-    return default
-
-# v5 리포트 KPI에서 추출 시도 (없으면 0)
-total_sales = parse_money([
+total_sales = strip_int(find_first([
     r"Total Sales</div>\s*<div class=\"v\">([^<]+)</div>",
     r"총 매출</div>\s*<div class=\"v\">([^<]+)</div>",
-], 0)
+]), 0)
 
-foreign_share = parse_pct([
+foreign_share = strip_pct(find_first([
     r"Foreign Share</div>\s*<div class=\"v\">([^<]+)</div>",
     r"해외 비중</div>\s*<div class=\"v\">([^<]+)</div>",
-], 0.0)
+]), 0.0)
 
-dom_share = parse_pct([
+dom_share = strip_pct(find_first([
     r"Domestic Share</div>\s*<div class=\"v\">([^<]+)</div>",
     r"국내 비중</div>\s*<div class=\"v\">([^<]+)</div>",
-], 0.0)
+]), 0.0)
 
-# 해외 TOP 국가 (가능하면)
+# --- Peak Time TOP3 표에서 1등 시간/매출 추출 ---
+# v5 HTML: "Peak Time TOP3 (by sales)" 카드 안 table
+peak_hour = None
+peak_sales = 0
+
+m = re.search(r"Peak Time TOP3.*?<table.*?</table>", html, re.S|re.I)
+if m:
+    table = m.group(0)
+    # 첫 데이터 행의 <td>들 가져오기
+    # (열: 시간 / 총매출 / 거래건수)
+    row = re.search(r"<tr>\s*<td[^>]*>\s*([0-9]{1,2})\s*</td>\s*<td[^>]*>\s*([^<]+)\s*</td>", table, re.S|re.I)
+    if row:
+        peak_hour = int(row.group(1))
+        peak_sales = strip_int(row.group(2), 0)
+
+# --- Foreign Countries 표에서 1등 국가/매출 추출 ---
 top_country = "UNK"
+top_country_sales = 0
+
 m = re.search(r"<h2>Foreign Countries</h2>.*?<table.*?</table>", html, re.S|re.I)
 if m:
     table = m.group(0)
-    m2 = re.search(r"<td>\s*([A-Z]{2})\s*</td>", table)
-    if m2:
-        top_country = m2.group(1)
+    # 첫 데이터행: 국가코드가 첫 td에 들어가는 구조를 가정 (v5는 국가코드 컬럼이 있거나 2글자 코드가 등장)
+    # 1) 우선 2글자 국가코드를 첫 td에서 찾기
+    row = re.search(r"<tr>\s*<td[^>]*>\s*([A-Z]{2})\s*</td>.*?<td[^>]*>\s*([^<]+)\s*</td>", table, re.S|re.I)
+    if row:
+        top_country = row.group(1)
+        # 두 번째 td가 매출이 아닐 수도 있어서, 표 안에서 "총매출"처럼 보이는 큰 숫자를 우선 추출
+        # 가장 먼저 나오는 큰 숫자를 top_country_sales로 가정
+        nums = re.findall(r"<td[^>]*>\s*([0-9][0-9,]+)\s*</td>", table)
+        # 보통 첫 큰 숫자가 매출일 가능성 높음
+        if nums:
+            top_country_sales = strip_int(nums[0], 0)
 
 meta = {
     "folder": folder,
@@ -158,7 +180,10 @@ meta = {
     "total_sales": total_sales,
     "dom_share": dom_share,
     "foreign_share": foreign_share,
-    "top_country": top_country
+    "peak_hour": peak_hour,
+    "peak_sales": peak_sales,
+    "top_country": top_country,
+    "top_country_sales": top_country_sales
 }
 
 out_path = os.path.join("docs", "popup", folder, "meta.json")

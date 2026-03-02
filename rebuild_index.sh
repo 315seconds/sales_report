@@ -199,107 +199,135 @@ cat > docs/index.html << EOF
     <div id="empty" class="empty">검색 결과가 없습니다.</div>
   </div>
 
-  <script>
-    const q = document.getElementById('q');
-    const cards = Array.from(document.querySelectorAll('.card'));
-    const empty = document.getElementById('empty');
+ <script>
+  const q = document.getElementById('q');
+  const cards = Array.from(document.querySelectorAll('.card'));
+  const empty = document.getElementById('empty');
 
-    function runFilter(){
-      const s = (q.value || '').toLowerCase().trim();
-      let shown = 0;
-      for(const c of cards){
-        const name = (c.dataset.name || '').toLowerCase();
-        const ok = !s || name.includes(s);
-        c.style.display = ok ? '' : 'none';
-        if(ok) shown++;
-      }
-      empty.style.display = (shown === 0) ? '' : 'none';
+  function runFilter(){
+    const s = (q.value || '').toLowerCase().trim();
+    let shown = 0;
+    for(const c of cards){
+      const name = (c.dataset.name || '').toLowerCase();
+      const ok = !s || name.includes(s);
+      c.style.display = ok ? '' : 'none';
+      if(ok) shown++;
     }
-    q.addEventListener('input', runFilter);
-    runFilter();
+    empty.style.display = (shown === 0) ? '' : 'none';
+  }
+  q.addEventListener('input', runFilter);
+  runFilter();
 
-    // ✅ meta.json 모아서 요약멘트 자동 생성
-    const summaryList = document.getElementById('summaryList');
+  // ✅ meta.json 모아서 요약멘트 자동 생성 (진짜 값 기반)
+  const summaryList = document.getElementById('summaryList');
 
-    function fmtMoney(n){
-      try { return n.toLocaleString('ko-KR'); } catch(e){ return String(n); }
+  function fmtMoney(n){
+    const x = Number(n) || 0;
+    try { return x.toLocaleString('ko-KR'); } catch(e){ return String(x); }
+  }
+
+  const flagMap = {
+    CN: "🇨🇳", JP: "🇯🇵", US: "🇺🇸", TW: "🇹🇼", HK: "🇭🇰", SG: "🇸🇬", TH: "🇹🇭", VN: "🇻🇳"
+  };
+
+  async function loadMetas(){
+    const urls = cards.map(c => c.dataset.meta).filter(Boolean);
+    // 최근 리포트 상위 N개만 집계 (요청한 문구가 “최근 팝업 3개”면 3 추천)
+    const N = Math.min(10, urls.length);
+
+    const metas = [];
+    for (let i=0; i<N; i++){
+      try{
+        const r = await fetch(urls[i], {cache: "no-store"});
+        if(!r.ok) continue;
+        const j = await r.json();
+        metas.push(j);
+      }catch(e){}
     }
+    return metas;
+  }
 
-    // 국가코드 -> 이모지(자주 쓰는 것만)
-    const flagMap = {
-      CN: "🇨🇳", JP: "🇯🇵", US: "🇺🇸", TW: "🇹🇼", HK: "🇭🇰", SG: "🇸🇬", TH: "🇹🇭", VN: "🇻🇳"
-    };
-
-    async function loadMetas(){
-      const urls = cards.map(c => c.dataset.meta).filter(Boolean);
-      // 최근 것(카드 순서) 기준 상위 N개만 집계 (원하면 3~5)
-      const N = Math.min(10, urls.length);
-
-      const metas = [];
-      for (let i=0; i<N; i++){
-        try{
-          const r = await fetch(urls[i], {cache: "no-store"});
-          if(!r.ok) continue;
-          const j = await r.json();
-          metas.push(j);
-        }catch(e){}
+  function pickTopBySum(mapObj){
+    // mapObj: {key: sumValue}
+    let best = null;
+    let bestV = -Infinity;
+    for(const [k,v] of Object.entries(mapObj)){
+      const nv = Number(v) || 0;
+      if(nv > bestV){
+        bestV = nv;
+        best = k;
       }
-      return metas;
     }
+    return {key: best, value: bestV};
+  }
 
-    function pickTopCountry(metas){
-      const counts = {};
-      for(const m of metas){
-        const c = (m.top_country || "UNK").toUpperCase();
-        if(c === "UNK") continue;
-        counts[c] = (counts[c] || 0) + 1;
-      }
-      let best = null, bestN = 0;
-      for(const [k,v] of Object.entries(counts)){
-        if(v > bestN){ best = k; bestN = v; }
-      }
-      return best;
-    }
+  async function buildSummary(){
+    const metasAll = await loadMetas();
 
-    async function buildSummary(){
-      const metas = await loadMetas();
-
-      if(metas.length === 0){
-        summaryList.innerHTML = "<li>아직 요약할 리포트가 없어요. 첫 리포트를 올려주세요 ✨</li>";
-        return;
-      }
-
-      const popupCount = metas.length;
-      const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / popupCount;
-      const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
-
-      const topCountry = pickTopCountry(metas);
-      const flag = topCountry ? (flagMap[topCountry] || "🌏") : "🌏";
-
-      // 피크타임은 meta에 아직 없어서(추가 가능), 일단 멘트 템플릿만 유지
-      // 원하면 meta.json에 peak_hour 넣어서 완전 자동화 가능!
-      const peakHour = null;
-
-      const lines = [];
-      // 네가 원하는 스타일 그대로 반영
-      lines.push(`최근 팝업 ${popupCount}개 종료! 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
-      if(topCountry){
-        lines.push(`요즘 우리를 제일 사랑해준 국가는 ${topCountry} ${flag} 🫶`);
-      }else{
-        lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
-      }
-      if(peakHour !== null){
-        lines.push(`피크타임은 ${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
-      }else{
-        lines.push(`피크타임은 리포트에서 확인해봐요! (다음 단계로 자동화 가능 🔥)`);
-      }
-      lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
-
-      summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
+    if(metasAll.length === 0){
+      summaryList.innerHTML = "<li>아직 요약할 리포트가 없어요. 첫 리포트를 올려주세요 ✨</li>";
+      return;
     }
 
-    buildSummary();
-  </script>
+    // ✅ “최근 팝업 3개 종료!” 고정 문구 원하면 3개로 제한
+    const metas = metasAll.slice(0, Math.min(3, metasAll.length));
+    const popupCount = metas.length;
+
+    // 평균 해외 비중(진짜)
+    const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / popupCount;
+
+    // 총매출 합계(진짜)
+    const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
+
+    // 국가 1등(진짜): top_country_sales를 국가별로 합산해서 1등
+    const countrySales = {};
+    for(const m of metas){
+      const c = String(m.top_country || "UNK").toUpperCase();
+      const s = Number(m.top_country_sales) || 0;
+      if(c !== "UNK" && s > 0){
+        countrySales[c] = (countrySales[c] || 0) + s;
+      }
+    }
+    const topCountryObj = pickTopBySum(countrySales);
+    const topCountry = topCountryObj.key;
+    const topCountryFlag = topCountry ? (flagMap[topCountry] || "🌏") : "🌏";
+
+    // 피크타임(진짜): peak_sales를 hour별로 합산해서 1등 hour
+    const hourSales = {};
+    for(const m of metas){
+      const h = m.peak_hour;
+      const s = Number(m.peak_sales) || 0;
+      if(h !== null && h !== undefined && s > 0){
+        const key = String(h);
+        hourSales[key] = (hourSales[key] || 0) + s;
+      }
+    }
+    const topHourObj = pickTopBySum(hourSales);
+    const peakHour = topHourObj.key !== null ? Number(topHourObj.key) : null;
+
+    // ✅ 네가 원하는 문구 그대로 (진짜 값만 삽입)
+    const lines = [];
+    lines.push(`최근 팝업 ${popupCount}개 종료! 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
+
+    if(topCountry){
+      lines.push(`요즘 우리를 제일 사랑해준 국가는 ${topCountry} ${topCountryFlag} 🫶`);
+    }else{
+      lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
+    }
+
+    if(peakHour !== null && !Number.isNaN(peakHour)){
+      lines.push(`피크타임은 ${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
+    }else{
+      lines.push(`피크타임은 집계 중이에요 🔥 (meta.json에 peak_hour/peak_sales 필요)`);
+    }
+
+    lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
+
+    summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
+  }
+
+  buildSummary();
+</script>
 </body>
 </html>
 EOF
