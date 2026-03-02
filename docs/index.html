@@ -149,13 +149,6 @@
 
     <div id="grid" class="grid">
       
-      <a class='card' href='https://315seconds.github.io/sales_report/popup/2026-03-02_seongsu/' data-name='2026-03-02_seongsu' data-meta='https://315seconds.github.io/sales_report/popup/2026-03-02_seongsu/meta.json'>
-        <div class='top'>
-          <div class='title'>seongsu</div>
-          <div class='badges'><span class='badge period'>2026-03-02</span><span class='badge store'>seongsu</span></div>
-        </div>
-        <div class='meta'>2026-03-02_seongsu</div>
-      </a>
       <a class='card' href='https://315seconds.github.io/sales_report/popup/2026-02-04_2026-02-09_chabot/' data-name='2026-02-04_2026-02-09_chabot' data-meta='https://315seconds.github.io/sales_report/popup/2026-02-04_2026-02-09_chabot/meta.json'>
         <div class='top'>
           <div class='title'>chabot</div>
@@ -279,20 +272,21 @@
     lines.push();
 
     if(topCountry){
-      lines.push();
+    lines.push();
     }else{
-      lines.push();
+    lines.push();
     }
 
     if(peakHour !== null && !Number.isNaN(peakHour)){
-      lines.push();
-    }else{
-      lines.push();
-    }
-
     lines.push();
+    }else{
+    lines.push();
+}
 
-    summaryList.innerHTML = lines.map(x => ).join("");
+lines.push();
+
+// ✅ 여기도 중요: bash가 를 먹어버리니 ${x}로
+summaryList.innerHTML = lines.map(x => ).join("");
   }
 
   buildSummary();

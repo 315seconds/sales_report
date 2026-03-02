@@ -307,23 +307,24 @@ cat > docs/index.html << EOF
 
     // ✅ 네가 원하는 문구 그대로 (진짜 값만 삽입)
     const lines = [];
-    lines.push(`최근 팝업 ${popupCount}개 종료! 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
+    lines.push(`최근 종료된 팝업 \${popupCount}개를 한입에 요약했어요 ✨ 평균 해외 비중은 \${(avgForeign*100).toFixed(1)}% 🌍✨`);
 
     if(topCountry){
-      lines.push(`요즘 우리를 제일 사랑해준 국가는 ${topCountry} ${topCountryFlag} 🫶`);
+    lines.push(`요즘 우리를 제일 사랑해준 국가는 \${topCountry} \${topCountryFlag} 🫶`);
     }else{
-      lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
+    lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
     }
 
     if(peakHour !== null && !Number.isNaN(peakHour)){
-      lines.push(`피크타임은 ${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
+    lines.push(`피크타임은 \${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
     }else{
-      lines.push(`피크타임은 집계 중이에요 🔥 (meta.json에 peak_hour/peak_sales 필요)`);
-    }
+    lines.push(`피크타임은 집계 중이에요 🔥`);
+}
 
-    lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
+lines.push(`총매출 합계 \${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
 
-    summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
+// ✅ 여기도 중요: bash가 ${x}를 먹어버리니 \${x}로
+summaryList.innerHTML = lines.map(x => `<li>\${x}</li>`).join("");
   }
 
   buildSummary();
