@@ -42,7 +42,7 @@ if [ -d "$ROOT" ]; then
   done
 fi
 
-cat > docs/index.html << EOF
+cat > docs/index.html << 'EOF'
 <!doctype html>
 <html lang="ko">
 <head>
@@ -193,7 +193,7 @@ cat > docs/index.html << EOF
     </div>
 
     <div id="grid" class="grid">
-      ${CARDS}
+      __CARDS__
     </div>
 
     <div id="empty" class="empty">검색 결과가 없습니다.</div>
@@ -332,5 +332,5 @@ summaryList.innerHTML = lines.map(x => `<li>\${x}</li>`).join("");
 </body>
 </html>
 EOF
-
+sed -i '' "s|__CARDS__|$CARDS|g" docs/index.html
 echo "✅ rebuilt docs/index.html (cute bg + badges + auto summary)"
