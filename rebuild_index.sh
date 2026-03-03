@@ -47,6 +47,9 @@ if [ -d "$ROOT" ]; then
   done
 fi
 
+# 임시 저장(치환용)
+printf "%s" "$CARDS" > .cards.tmp
+
 # ----------------------------
 # 2) 템플릿 HTML 생성 (bash 변수치환 OFF)
 # ----------------------------
@@ -64,11 +67,10 @@ cat > docs/index.html << 'EOF'
       --muted:#6b7280;
       --line:#e5e7eb;
 
-      /* 귀여운 파스텔 블롭 */
-      --p1: rgba(255, 179, 186, 0.22);
-      --p2: rgba(186, 225, 255, 0.22);
-      --p3: rgba(255, 223, 186, 0.18);
-      --p4: rgba(186, 255, 201, 0.18);
+      --p1: rgba(255, 179, 186, 0.18);
+      --p2: rgba(186, 225, 255, 0.18);
+      --p3: rgba(255, 223, 186, 0.14);
+      --p4: rgba(186, 255, 201, 0.14);
     }
 
     body{
@@ -79,16 +81,16 @@ cat > docs/index.html << 'EOF'
     }
 
     .bg{position:fixed; inset:0; pointer-events:none; z-index:-1; overflow:hidden;}
-    .blob{position:absolute; border-radius:999px; filter: blur(40px); transform: translate3d(0,0,0);}
-    .b1{ width:520px; height:520px; left:-180px; top:-220px; background: var(--p1); }
-    .b2{ width:560px; height:560px; right:-220px; top:-240px; background: var(--p2); }
-    .b3{ width:520px; height:520px; left:-160px; bottom:-240px; background: var(--p4); }
-    .b4{ width:520px; height:520px; right:-200px; bottom:-260px; background: var(--p3); }
+    .blob{position:absolute; border-radius:999px; filter: blur(46px);}
+    .b1{ width:520px; height:520px; left:-190px; top:-240px; background: var(--p1); }
+    .b2{ width:560px; height:560px; right:-230px; top:-260px; background: var(--p2); }
+    .b3{ width:520px; height:520px; left:-170px; bottom:-260px; background: var(--p4); }
+    .b4{ width:520px; height:520px; right:-210px; bottom:-280px; background: var(--p3); }
 
     .wrap{max-width:1100px;margin:0 auto;padding:26px 18px 46px;}
     .header{
-      background: rgba(255,255,255,0.82);
-      border: 1px solid rgba(229,231,235,0.9);
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(229,231,235,0.95);
       border-radius: 18px;
       padding: 18px 18px;
       box-shadow: 0 10px 30px rgba(17,24,39,0.06);
@@ -99,8 +101,8 @@ cat > docs/index.html << 'EOF'
 
     .summary{
       margin-top:12px;
-      background: rgba(255,255,255,0.88);
-      border: 1px solid rgba(229,231,235,0.9);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(229,231,235,0.95);
       border-radius: 18px;
       padding: 14px 16px;
       box-shadow: 0 10px 30px rgba(17,24,39,0.05);
@@ -114,7 +116,7 @@ cat > docs/index.html << 'EOF'
     .search{
       flex:1 1 280px;
       background:#fff;border-radius:14px;
-      padding:12px 12px;border:1px solid rgba(229,231,235,0.9);outline:none;
+      padding:12px 12px;border:1px solid rgba(229,231,235,0.95);outline:none;
       font-size:14px;color:#111;
       box-shadow: 0 8px 20px rgba(17,24,39,0.04);
     }
@@ -128,11 +130,11 @@ cat > docs/index.html << 'EOF'
     .card{
       display:block;
       text-decoration:none;
-      background: rgba(255,255,255,0.92);
+      background: rgba(255,255,255,0.94);
       color:#111;
       border-radius: 18px;
       padding: 14px 16px;
-      border: 1px solid rgba(229,231,235,0.9);
+      border: 1px solid rgba(229,231,235,0.95);
       box-shadow: 0 12px 30px rgba(17,24,39,0.06);
       transition: transform .12s ease, box-shadow .12s ease;
     }
@@ -157,8 +159,8 @@ cat > docs/index.html << 'EOF'
 
     .empty{
       margin-top:14px;
-      background: rgba(255,255,255,0.86);
-      border: 1px solid rgba(229,231,235,0.9);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(229,231,235,0.95);
       border-radius: 18px;
       padding: 14px 16px;
       color: var(--muted);
@@ -176,7 +178,7 @@ cat > docs/index.html << 'EOF'
   <div class="wrap">
     <div class="header">
       <h1>📊 Popup Report Archive</h1>
-      <div class="sub">리포트를 누적 저장하고, 홈에서 한눈에 찾을 수 있어요.</div>
+      <div class="sub">팝업 종료 리포트를 누적 저장하고, 홈에서 한눈에 확인합니다.</div>
     </div>
 
     <div class="summary">
@@ -184,7 +186,7 @@ cat > docs/index.html << 'EOF'
       <ul id="summaryList">
         <li>요약을 불러오는 중…</li>
       </ul>
-      <div class="hint">* meta.json 기반 자동 요약 (리포트 업로드 시 함께 생성됨)</div>
+      <div class="hint">* meta.json(총매출/해외비중/피크타임) 기반 자동 요약</div>
     </div>
 
     <div class="controls">
@@ -217,7 +219,7 @@ __CARDS__
     q.addEventListener('input', runFilter);
     runFilter();
 
-    // ----- 진짜 값(meta.json) 기반 요약 -----
+    // ----- v6 meta.json 기반 요약(국가 문장 제거) -----
     const summaryList = document.getElementById('summaryList');
 
     function fmtMoney(n){
@@ -225,11 +227,9 @@ __CARDS__
       try { return x.toLocaleString('ko-KR'); } catch(e){ return String(x); }
     }
 
-    const flagMap = { CN:"🇨🇳", JP:"🇯🇵", US:"🇺🇸", TW:"🇹🇼", HK:"🇭🇰", SG:"🇸🇬", TH:"🇹🇭", VN:"🇻🇳" };
-
     async function loadMetas(){
       const urls = cards.map(c => c.dataset.meta).filter(Boolean);
-      const N = Math.min(10, urls.length); // 최근 상위 10개까지만 fetch
+      const N = Math.min(10, urls.length);
       const metas = [];
       for(let i=0;i<N;i++){
         try{
@@ -257,25 +257,14 @@ __CARDS__
         return;
       }
 
-      // 최근 종료된 팝업 n개 기준 (현재 3개)
+      // 최근 종료된 팝업 n개 기준 (3개)
       const metas = metasAll.slice(0, Math.min(3, metasAll.length));
-      const popupCount = metas.length;
+      const n = metas.length;
 
-      const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / popupCount;
+      const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / n;
       const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
 
-      // 국가 1등(매출 합산)
-      const countrySales = {};
-      for(const m of metas){
-        const c = String(m.top_country || "UNK").toUpperCase();
-        const s = Number(m.top_country_sales) || 0;
-        if(c !== "UNK" && s > 0) countrySales[c] = (countrySales[c]||0) + s;
-      }
-      const topCountryObj = pickTopBySum(countrySales);
-      const topCountry = topCountryObj.key;
-      const topCountryFlag = topCountry ? (flagMap[topCountry] || "🌏") : "🌏";
-
-      // 피크타임 1등(매출 합산)
+      // 피크타임(매출 합산): hour별 peak_sales 합으로 1등 hour
       const hourSales = {};
       for(const m of metas){
         const h = m.peak_hour;
@@ -289,20 +278,12 @@ __CARDS__
       const peakHour = topHourObj.key !== null ? Number(topHourObj.key) : null;
 
       const lines = [];
-      lines.push(`최근 종료된 팝업 ${popupCount}개를 한입에 요약했어요 ✨ 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
-
-      if(topCountry){
-        lines.push(`요즘 우리를 제일 사랑해준 국가는 ${topCountry} ${topCountryFlag} 🫶`);
-      }else{
-        lines.push(`요즘 우리를 제일 사랑해준 국가는 집계 중이에요 🌏🫶`);
-      }
-
+      lines.push(`최근 종료된 팝업 ${n}개를 한입에 요약했어요 ✨ 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
       if(peakHour !== null && !Number.isNaN(peakHour)){
-        lines.push(`피크타임은 ${peakHour}시! 퇴근 후 방문이 강했네요 🔥`);
+        lines.push(`피크타임은 ${peakHour}시! 손님이 가장 몰렸어요 🔥`);
       }else{
         lines.push(`피크타임은 집계 중이에요 🔥`);
       }
-
       lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
 
       summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
@@ -315,11 +296,8 @@ __CARDS__
 EOF
 
 # ----------------------------
-# 3) __CARDS__ 플레이스홀더에 카드 삽입
-#    (특수문자/슬래시 안전하게 python으로 치환)
+# 3) __CARDS__ 치환 (python으로 안전 치환)
 # ----------------------------
-printf "%s" "$CARDS" > .cards.tmp
-
 python3 - << 'PY'
 from pathlib import Path
 html = Path("docs/index.html").read_text(encoding="utf-8")
@@ -329,4 +307,4 @@ PY
 
 rm -f .cards.tmp
 
-echo "✅ rebuilt docs/index.html (final complete)"
+echo "✅ rebuilt docs/index.html (v6)"
