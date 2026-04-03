@@ -1,0 +1,24 @@
+{
+  "store": "성수",
+  "start": "2026-02-01",
+  "end": "2026-02-28",
+  "days": 28,
+  "total_sales": 57353370,
+  "total_cnt": 1029,
+  "daily_avg_sales": 2048334,
+  "dom_sales": 37204160,
+  "dom_cnt": 749,
+  "dom_share": 0.6486830677953188,
+  "for_sales": 20149210,
+  "for_cnt": 280,
+  "foreign_share": 0.35131693220468124,
+  "peak_hour": 15,
+  "peak_sales": 9101020,
+  "top_category": "자켓",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "중국",
+    "아이오로라"
+  ]
+}

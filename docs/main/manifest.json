@@ -1,6 +1,10 @@
 {
   "months": [
     {
+      "label": "2026-02",
+      "url": "https://315seconds.github.io/sales_report/main/2026-02_seongsu/meta.json"
+    },
+    {
       "label": "2026-03",
       "url": "https://315seconds.github.io/sales_report/main/2026-03_seongsu/meta.json"
     }
