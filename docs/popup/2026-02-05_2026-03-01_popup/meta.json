@@ -1,0 +1,24 @@
+{
+  "store": "한칸",
+  "start": "2026-02-05",
+  "end": "2026-03-01",
+  "days": 25,
+  "total_sales": 10093600,
+  "total_cnt": 292,
+  "daily_avg_sales": 403744,
+  "dom_sales": 6019700,
+  "dom_cnt": 181,
+  "dom_share": 0.5963878100974875,
+  "for_sales": 4073900,
+  "for_cnt": 111,
+  "foreign_share": 0.40361218990251246,
+  "peak_hour": 17,
+  "peak_sales": 1525300,
+  "top_category": "자켓",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "중국",
+    "아이오로라"
+  ]
+}
