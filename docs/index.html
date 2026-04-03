@@ -106,6 +106,15 @@
     .empty{padding:14px 16px;color:var(--muted);font-size:13px;display:none;}
     .loading{color:var(--muted);font-size:12px;font-style:italic;}
     .no-data{color:#9ca3af;font-size:12px;}
+    .detail-link{
+      display:inline-flex; align-items:center; gap:4px;
+      margin-top:12px; padding:7px 14px;
+      background:#111827; color:#fff;
+      border-radius:999px; font-size:12px; font-weight:700;
+      text-decoration:none; transition:opacity .12s;
+    }
+    .detail-link:hover{opacity:0.8;}
+    .panel-footer{display:flex; justify-content:flex-end; margin-top:4px;}
   </style>
 </head>
 <body>
@@ -134,7 +143,7 @@
   <div class="section" style="margin-top:16px;">
     <div class="section-title">📍 팝업 아카이브</div>
     <div class="controls">
-      <input id="q" class="search" placeholder="검색 (예: 2026-03, chabot, ohE)"/>
+      <input id="q" class="search" placeholder="검색 (예: 연무장, 2026-03, yeonmoo)"/>
     </div>
     <div id="grid" class="grid"><span class="loading">불러오는 중…</span></div>
     <div id="empty" class="empty">검색 결과가 없습니다.</div>
@@ -175,9 +184,12 @@ const tabsEl   = document.getElementById('mainTabs');
 const panelsEl = document.getElementById('mainPanels');
 let mainMetaList = [];
 
-function monthKpisHTML(m){
+function monthKpisHTML(m, href){
   if(!m) return `<div class="no-data">데이터를 불러올 수 없습니다.</div>`;
   const daily = m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0);
+  const detailBtn = href
+    ? `<div class="panel-footer"><a class="detail-link" href="${href}" target="_blank">상세 리포트 →</a></div>`
+    : '';
   return `<div class="month-kpis">
     <div class="month-kpi"><div class="k">월 총 매출</div><div class="v">${fmtWon(m.total_sales)}</div></div>
     <div class="month-kpi"><div class="k">일 평균 매출</div><div class="v">${fmtWon(daily)}</div></div>
@@ -187,7 +199,7 @@ function monthKpisHTML(m){
     <div class="month-kpi"><div class="k">해외 매출</div><div class="v">${fmtWon(m.for_sales)}</div></div>
     <div class="month-kpi"><div class="k">피크타임</div><div class="v">${m.peak_hour!=null?m.peak_hour+'시':'—'}</div></div>
     <div class="month-kpi"><div class="k">TOP 카테고리</div><div class="v">${m.top_category||'—'}</div></div>
-  </div>`;
+  </div>${detailBtn}`;
 }
 
 async function buildMainSection(){
@@ -198,7 +210,7 @@ async function buildMainSection(){
   }
   tabsEl.innerHTML=''; panelsEl.innerHTML='';
   for(let i=0;i<manifest.months.length;i++){
-    const {label,url} = manifest.months[i];
+    const {label,url,href} = manifest.months[i];
     const tab = document.createElement('button');
     tab.className='tab'+(i===0?' active':'');
     tab.textContent=label;
@@ -216,7 +228,7 @@ async function buildMainSection(){
     panelsEl.appendChild(panel);
     const meta=await fetchJSON(url);
     mainMetaList.push({label,meta});
-    panel.innerHTML=monthKpisHTML(meta);
+    panel.innerHTML=monthKpisHTML(meta, href||null);
   }
   tryInsight();
 }
@@ -274,7 +286,9 @@ function runFilter(){
   const cards=Array.from(document.querySelectorAll('.card'));
   let shown=0;
   for(const c of cards){
-    const ok=!s||(c.dataset.name||'').toLowerCase().includes(s);
+    // data-search(한글+영문+날짜) 또는 data-name 둘 다 검색
+    const searchText=(c.dataset.search||c.dataset.name||'').toLowerCase();
+    const ok=!s||searchText.includes(s);
     c.style.display=ok?'':'none';
     if(ok) shown++;
   }
@@ -293,6 +307,8 @@ async function buildPopupSection(){
     const {name,label,start,end,href,meta_url}=manifest.popups[i];
     const card=document.createElement('a');
     card.className='card'; card.href=href; card.dataset.name=name;
+    // 한글 label, 영문 slug, 날짜 모두 검색 가능하도록
+    card.dataset.search=`${label} ${name} ${start} ${end}`.toLowerCase();
     card.innerHTML=`
       <div class="card-top">
         <div class="card-title">${label}</div>

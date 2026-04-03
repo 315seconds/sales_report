@@ -1,25 +1,31 @@
 #!/usr/bin/env bash
 # ============================================================
 # publish_main_report.sh
-# 성수본점 월별 meta.json 을 docs/main/ 에 저장하고
+# 성수본점 월별 HTML + meta.json 을 docs/main/ 에 저장하고
 # docs/main/manifest.json 을 자동 업데이트한 뒤 GitHub에 push
 # ------------------------------------------------------------
 # 사용법:
-#   ./publish_main_report.sh <meta.json 경로> [월 레이블(선택)]
+#   ./publish_main_report.sh <report.html 경로> <meta.json 경로> [월 레이블(선택)]
 #
 # 예시:
-#   ./publish_main_report.sh ~/Downloads/meta_성수_2026-03.json
-#   ./publish_main_report.sh ~/Downloads/meta_성수_2026-03.json 2026-03
+#   ./publish_main_report.sh ~/Downloads/popup_report_성수.html ~/Downloads/meta_성수_2026-03.json
+#   ./publish_main_report.sh ~/Downloads/popup_report_성수.html ~/Downloads/meta_성수_2026-03.json 2026-03
 # ============================================================
 set -euo pipefail
 
-META_PATH="${1:-}"
-LABEL="${2:-}"   # 선택: 지정 안 하면 start 날짜에서 자동 생성
+HTML_PATH="${1:-}"
+META_PATH="${2:-}"
+LABEL="${3:-}"   # 선택: 지정 안 하면 start 날짜에서 자동 생성
 
 # ── 인수 확인 ──────────────────────────────────────────────
-if [ -z "$META_PATH" ]; then
-  echo "사용법: ./publish_main_report.sh <meta.json 경로> [월 레이블]"
-  echo "예:     ./publish_main_report.sh ~/Downloads/meta_성수_2026-03.json"
+if [ -z "$HTML_PATH" ] || [ -z "$META_PATH" ]; then
+  echo "사용법: ./publish_main_report.sh <report.html 경로> <meta.json 경로> [월 레이블]"
+  echo "예:     ./publish_main_report.sh ~/Downloads/popup_report_성수.html ~/Downloads/meta_성수.json"
+  exit 1
+fi
+
+if [ ! -f "$HTML_PATH" ]; then
+  echo "❌ HTML 파일을 찾을 수 없습니다: $HTML_PATH"
   exit 1
 fi
 
@@ -64,10 +70,11 @@ echo "✅ 레이블: $LABEL_OUT  /  폴더명: $FOLDER"
 TARGET_DIR="docs/main/$FOLDER"
 mkdir -p "$TARGET_DIR"
 
-if [ -f "$TARGET_DIR/meta.json" ]; then
+if [ -f "$TARGET_DIR/meta.json" ] || [ -f "$TARGET_DIR/index.html" ]; then
   echo "⚠️  이미 같은 폴더($FOLDER)가 있습니다. 덮어씁니다."
 fi
 
+cp "$HTML_PATH" "$TARGET_DIR/index.html"
 cp "$META_PATH" "$TARGET_DIR/meta.json"
 echo "📁 복사 완료: $TARGET_DIR/"
 
@@ -88,6 +95,7 @@ manifest = json.loads(mf_path.read_text(encoding='utf-8')) if mf_path.exists() e
 entry = {
     "label": label,
     "url":   f"{base_url}/main/{folder}/meta.json",
+    "href":  f"{base_url}/main/{folder}/",
 }
 
 # 같은 label이 있으면 교체, 없으면 맨 앞에 추가 (최신순)
@@ -101,7 +109,7 @@ print(f"✅ manifest 업데이트: {label} 추가 (총 {len(months)}개월)")
 PY
 
 # ── git add / commit / push ─────────────────────────────────
-git add "$TARGET_DIR/meta.json" "$MANIFEST"
+git add "$TARGET_DIR/index.html" "$TARGET_DIR/meta.json" "$MANIFEST"
 
 if git diff --cached --quiet; then
   echo "ℹ️  변경사항 없음 (commit/push 생략)"
@@ -114,3 +122,4 @@ fi
 
 echo ""
 echo "🏠 홈(목록): $BASE_URL/"
+echo "📊 리포트:   $BASE_URL/main/$FOLDER/"
