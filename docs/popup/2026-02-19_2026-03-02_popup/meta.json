@@ -1,0 +1,24 @@
+{
+  "store": "연무장",
+  "start": "2026-02-19",
+  "end": "2026-03-02",
+  "days": 12,
+  "total_sales": 2671800,
+  "total_cnt": 75,
+  "daily_avg_sales": 222650,
+  "dom_sales": 1701400,
+  "dom_cnt": 53,
+  "dom_share": 0.6367991616138933,
+  "for_sales": 970400,
+  "for_cnt": 22,
+  "foreign_share": 0.36320083838610673,
+  "peak_hour": 17,
+  "peak_sales": 465700,
+  "top_category": "바람막이",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "중국",
+    "아이오로라"
+  ]
+}

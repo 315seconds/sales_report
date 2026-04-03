@@ -1,6 +1,14 @@
 {
   "popups": [
     {
+      "name": "2026-02-19_2026-03-02_popup",
+      "label": "연무장",
+      "start": "2026-02-19",
+      "end": "2026-03-02",
+      "href": "https://315seconds.github.io/sales_report/popup/2026-02-19_2026-03-02_popup/",
+      "meta_url": "https://315seconds.github.io/sales_report/popup/2026-02-19_2026-03-02_popup/meta.json"
+    },
+    {
       "name": "2026-02-04_2026-02-09_popup",
       "label": "차봇",
       "start": "2026-02-04",
