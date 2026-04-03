@@ -1,0 +1,24 @@
+{
+  "store": "오이",
+  "start": "2026-02-20",
+  "end": "2026-03-11",
+  "days": 20,
+  "total_sales": 20030600,
+  "total_cnt": 489,
+  "daily_avg_sales": 1001530,
+  "dom_sales": 13519700,
+  "dom_cnt": 335,
+  "dom_share": 0.6749523229458928,
+  "for_sales": 6510900,
+  "for_cnt": 154,
+  "foreign_share": 0.3250476770541072,
+  "peak_hour": 17,
+  "peak_sales": 4086700,
+  "top_category": "스웻셔츠",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "중국",
+    "아이오로라"
+  ]
+}

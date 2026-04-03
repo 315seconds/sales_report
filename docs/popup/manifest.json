@@ -1,0 +1,12 @@
+{
+  "popups": [
+    {
+      "name": "2026-02-20_2026-03-11_popup",
+      "label": "오이",
+      "start": "2026-02-20",
+      "end": "2026-03-11",
+      "href": "https://315seconds.github.io/sales_report/popup/2026-02-20_2026-03-11_popup/",
+      "meta_url": "https://315seconds.github.io/sales_report/popup/2026-02-20_2026-03-11_popup/meta.json"
+    }
+  ]
+}
