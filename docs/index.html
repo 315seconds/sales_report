@@ -3,272 +3,318 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Popup Report Archive</title>
+  <title>마켓인유 리포트 아카이브</title>
   <style>
     :root{
-      --bg:#fbfbff;
-      --ink:#111827;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-
-      --p1: rgba(255, 179, 186, 0.18);
-      --p2: rgba(186, 225, 255, 0.18);
-      --p3: rgba(255, 223, 186, 0.14);
-      --p4: rgba(186, 255, 201, 0.14);
+      --bg:#fbfbff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
+      --p1:rgba(255,179,186,0.18); --p2:rgba(186,225,255,0.18);
+      --p3:rgba(255,223,186,0.14); --p4:rgba(186,255,201,0.14);
     }
-
+    *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif;
-      background: var(--bg);
-      color: var(--ink);
+      background:var(--bg); color:var(--ink);
     }
-
-    .bg{position:fixed; inset:0; pointer-events:none; z-index:-1; overflow:hidden;}
-    .blob{position:absolute; border-radius:999px; filter: blur(46px);}
-    .b1{ width:520px; height:520px; left:-190px; top:-240px; background: var(--p1); }
-    .b2{ width:560px; height:560px; right:-230px; top:-260px; background: var(--p2); }
-    .b3{ width:520px; height:520px; left:-170px; bottom:-260px; background: var(--p4); }
-    .b4{ width:520px; height:520px; right:-210px; bottom:-280px; background: var(--p3); }
-
-    .wrap{max-width:1100px;margin:0 auto;padding:26px 18px 46px;}
+    .bg{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden;}
+    .blob{position:absolute;border-radius:999px;filter:blur(46px);}
+    .b1{width:520px;height:520px;left:-190px;top:-240px;background:var(--p1);}
+    .b2{width:560px;height:560px;right:-230px;top:-260px;background:var(--p2);}
+    .b3{width:520px;height:520px;left:-170px;bottom:-260px;background:var(--p4);}
+    .b4{width:520px;height:520px;right:-210px;bottom:-280px;background:var(--p3);}
+    .wrap{max-width:1100px;margin:0 auto;padding:26px 18px 60px;}
     .header{
-      background: rgba(255,255,255,0.86);
-      border: 1px solid rgba(229,231,235,0.95);
-      border-radius: 18px;
-      padding: 18px 18px;
-      box-shadow: 0 10px 30px rgba(17,24,39,0.06);
-      backdrop-filter: blur(8px);
+      background:rgba(255,255,255,0.86); border:1px solid rgba(229,231,235,0.95);
+      border-radius:18px; padding:18px 20px;
+      box-shadow:0 10px 30px rgba(17,24,39,0.06); backdrop-filter:blur(8px);
     }
-    h1{margin:0;font-size:22px;letter-spacing:-0.2px}
-    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4}
-
-    .summary{
-      margin-top:12px;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(229,231,235,0.95);
-      border-radius: 18px;
-      padding: 14px 16px;
-      box-shadow: 0 10px 30px rgba(17,24,39,0.05);
+    h1{margin:0;font-size:22px;letter-spacing:-0.2px;}
+    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5;}
+    .section{
+      margin-top:16px; background:rgba(255,255,255,0.92);
+      border:1px solid rgba(229,231,235,0.95); border-radius:18px;
+      padding:16px 18px; box-shadow:0 10px 30px rgba(17,24,39,0.05);
     }
-    .summary h2{margin:0 0 8px;font-size:14px}
-    .summary ul{margin:0;padding-left:18px;color:#111827}
-    .summary li{margin:6px 0;font-size:13px}
-    .summary .hint{margin-top:8px;color:var(--muted);font-size:12px}
-
-    .controls{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 14px}
+    .section-title{
+      display:flex; align-items:center; gap:8px;
+      margin:0 0 14px; font-size:15px; font-weight:800; letter-spacing:-0.1px;
+    }
+    .chip{
+      font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px;
+      background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;
+    }
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+    .tab{
+      padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700;
+      border:1px solid var(--line); background:#fff; color:var(--muted);
+      cursor:pointer; transition:all .12s;
+    }
+    .tab.active{background:#111827;color:#fff;border-color:#111827;}
+    .month-panel{display:none;}
+    .month-panel.active{display:block;}
+    .month-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;}
+    .month-kpi{background:#f9fafb;border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+    .month-kpi .k{color:var(--muted);font-size:11px;}
+    .month-kpi .v{font-weight:800;font-size:15px;margin-top:3px;}
+    .insight{
+      margin-top:16px;
+      background:linear-gradient(135deg,rgba(238,242,255,0.9),rgba(236,254,255,0.9));
+      border:1px solid rgba(165,180,252,0.4); border-radius:18px;
+      padding:14px 18px; box-shadow:0 8px 20px rgba(17,24,39,0.04);
+    }
+    .insight-title{font-size:13px;font-weight:800;margin:0 0 10px;color:#3730a3;}
+    .insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+    .insight-item{
+      background:rgba(255,255,255,0.7); border-radius:12px;
+      padding:10px 12px; border:1px solid rgba(165,180,252,0.25);
+    }
+    .insight-item .ik{font-size:11px;color:#6b7280;}
+    .insight-item .iv{font-size:14px;font-weight:800;margin-top:3px;}
+    .insight-item .iv.up{color:#15803d;}
+    .insight-item .iv.hl{color:#3730a3;}
+    .controls{display:flex;gap:10px;margin-bottom:12px;}
     .search{
-      flex:1 1 280px;
-      background:#fff;border-radius:14px;
-      padding:12px 12px;border:1px solid rgba(229,231,235,0.95);outline:none;
-      font-size:14px;color:#111;
-      box-shadow: 0 8px 20px rgba(17,24,39,0.04);
+      flex:1 1 240px; background:#fff; border-radius:12px;
+      padding:10px 14px; border:1px solid rgba(229,231,235,0.95);
+      outline:none; font-size:13px; color:#111;
+      box-shadow:0 4px 12px rgba(17,24,39,0.04);
     }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap:12px;
-      margin-top: 10px;
-    }
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;}
     .card{
-      display:block;
-      text-decoration:none;
-      background: rgba(255,255,255,0.94);
-      color:#111;
-      border-radius: 18px;
-      padding: 14px 16px;
-      border: 1px solid rgba(229,231,235,0.95);
-      box-shadow: 0 12px 30px rgba(17,24,39,0.06);
-      transition: transform .12s ease, box-shadow .12s ease;
+      display:block; text-decoration:none; background:rgba(255,255,255,0.94);
+      color:#111; border-radius:16px; padding:14px 16px;
+      border:1px solid rgba(229,231,235,0.95);
+      box-shadow:0 8px 24px rgba(17,24,39,0.06);
+      transition:transform .12s ease, box-shadow .12s ease;
     }
-    .card:hover{ transform: translateY(-2px); box-shadow: 0 16px 40px rgba(17,24,39,0.10); }
-    .top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;}
-    .title{font-weight:900;font-size:16px;letter-spacing:-0.1px}
-    .meta{margin-top:8px;color:#6b7280;font-size:12px;word-break:break-all}
-
-    .badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .card:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(17,24,39,0.10);}
+    .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+    .card-title{font-weight:900;font-size:15px;letter-spacing:-0.1px;}
+    .card-kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+    .ck{background:#f9fafb;border-radius:10px;padding:7px 9px;border:1px solid var(--line);}
+    .ck .cl{font-size:10px;color:var(--muted);}
+    .ck .cv{font-size:13px;font-weight:800;margin-top:2px;}
+    .badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
     .badge{
-      display:inline-block;
-      padding:5px 9px;
-      border-radius:999px;
-      font-size:11px;
-      border: 1px solid rgba(0,0,0,0.06);
-      background:#f3f4f6;
-      color:#111827;
-      white-space:nowrap;
+      display:inline-block; padding:4px 8px; border-radius:999px;
+      font-size:10px; font-weight:600; border:1px solid rgba(0,0,0,0.06);
+      background:#f3f4f6; color:#111827; white-space:nowrap;
     }
-    .badge.period{ background:#eef2ff; color:#3730a3; }
-    .badge.store{ background:#ecfeff; color:#155e75; }
-
-    .empty{
-      margin-top:14px;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(229,231,235,0.95);
-      border-radius: 18px;
-      padding: 14px 16px;
-      color: var(--muted);
-      font-size: 13px;
-      display:none;
-    }
+    .badge.period{background:#eef2ff;color:#3730a3;}
+    .badge.cat{background:#fdf4ff;color:#7e22ce;}
+    .badge.for{background:#fff7ed;color:#c2410c;}
+    .empty{padding:14px 16px;color:var(--muted);font-size:13px;display:none;}
+    .loading{color:var(--muted);font-size:12px;font-style:italic;}
+    .no-data{color:#9ca3af;font-size:12px;}
   </style>
 </head>
-
 <body>
-  <div class="bg">
-    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div>
+<div class="bg">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="blob b3"></div><div class="blob b4"></div>
+</div>
+<div class="wrap">
+
+  <div class="header">
+    <h1>📊 마켓인유 리포트 아카이브</h1>
+    <div class="sub">성수본점 월별 현황 · 팝업 리포트를 한곳에서 확인합니다.</div>
   </div>
 
-  <div class="wrap">
-    <div class="header">
-      <h1>📊 Popup Report Archive</h1>
-      <div class="sub">팝업 종료 리포트를 누적 저장하고, 홈에서 한눈에 확인합니다.</div>
-    </div>
+  <div class="section">
+    <div class="section-title">🏠 성수본점 <span class="chip">PERMANENT</span></div>
+    <div class="tabs" id="mainTabs"><span class="loading">불러오는 중…</span></div>
+    <div id="mainPanels"></div>
+  </div>
 
-    <div class="summary">
-      <h2>✨ 이번 주 한 줄 요약</h2>
-      <ul id="summaryList">
-        <li>요약을 불러오는 중…</li>
-      </ul>
-      <div class="hint">* meta.json(총매출/해외비중/피크타임) 기반 자동 요약</div>
-    </div>
+  <div class="insight" id="insightBox" style="display:none;">
+    <div class="insight-title">💡 본점 × 팝업 비교 인사이트</div>
+    <div class="insight-grid" id="insightGrid"></div>
+  </div>
 
+  <div class="section" style="margin-top:16px;">
+    <div class="section-title">📍 팝업 아카이브</div>
     <div class="controls">
-      <input id="q" class="search" placeholder="검색 (예: 2026-02, chabot, seongsu)" />
+      <input id="q" class="search" placeholder="검색 (예: 2026-03, chabot, ohE)"/>
     </div>
-
-    <div id="grid" class="grid">
-
-<a class='card' href='https://315seconds.github.io/sales_report/popup/2026-03-01_2026-03-29_seongsu/' data-name='2026-03-01_2026-03-29_seongsu' data-meta='https://315seconds.github.io/sales_report/popup/2026-03-01_2026-03-29_seongsu/meta.json'>
-  <div class='top'>
-    <div class='title'>seongsu</div>
-    <div class='badges'><span class='badge period'>2026-03-01 ~ 2026-03-29</span><span class='badge store'>seongsu</span></div>
-  </div>
-  <div class='meta'>2026-03-01_2026-03-29_seongsu</div>
-</a>
-<a class='card' href='https://315seconds.github.io/sales_report/popup/2026-02-20_2026-03-11_ohE/' data-name='2026-02-20_2026-03-11_ohE' data-meta='https://315seconds.github.io/sales_report/popup/2026-02-20_2026-03-11_ohE/meta.json'>
-  <div class='top'>
-    <div class='title'>ohE</div>
-    <div class='badges'><span class='badge period'>2026-02-20 ~ 2026-03-11</span><span class='badge store'>ohE</span></div>
-  </div>
-  <div class='meta'>2026-02-20_2026-03-11_ohE</div>
-</a>
-<a class='card' href='https://315seconds.github.io/sales_report/popup/2026-02-19_2026-03-02_yeonmoo/' data-name='2026-02-19_2026-03-02_yeonmoo' data-meta='https://315seconds.github.io/sales_report/popup/2026-02-19_2026-03-02_yeonmoo/meta.json'>
-  <div class='top'>
-    <div class='title'>yeonmoo</div>
-    <div class='badges'><span class='badge period'>2026-02-19 ~ 2026-03-02</span><span class='badge store'>yeonmoo</span></div>
-  </div>
-  <div class='meta'>2026-02-19_2026-03-02_yeonmoo</div>
-</a>
-<a class='card' href='https://315seconds.github.io/sales_report/popup/2026-02-05_2026-03-01_hankan/' data-name='2026-02-05_2026-03-01_hankan' data-meta='https://315seconds.github.io/sales_report/popup/2026-02-05_2026-03-01_hankan/meta.json'>
-  <div class='top'>
-    <div class='title'>hankan</div>
-    <div class='badges'><span class='badge period'>2026-02-05 ~ 2026-03-01</span><span class='badge store'>hankan</span></div>
-  </div>
-  <div class='meta'>2026-02-05_2026-03-01_hankan</div>
-</a>
-<a class='card' href='https://315seconds.github.io/sales_report/popup/2026-02-04_2026-02-09_chabot/' data-name='2026-02-04_2026-02-09_chabot' data-meta='https://315seconds.github.io/sales_report/popup/2026-02-04_2026-02-09_chabot/meta.json'>
-  <div class='top'>
-    <div class='title'>chabot</div>
-    <div class='badges'><span class='badge period'>2026-02-04 ~ 2026-02-09</span><span class='badge store'>chabot</span></div>
-  </div>
-  <div class='meta'>2026-02-04_2026-02-09_chabot</div>
-</a>
-    </div>
-
+    <div id="grid" class="grid"><span class="loading">불러오는 중…</span></div>
     <div id="empty" class="empty">검색 결과가 없습니다.</div>
   </div>
 
-  <script>
-    const q = document.getElementById('q');
-    const cards = Array.from(document.querySelectorAll('.card'));
-    const empty = document.getElementById('empty');
+</div>
 
-    function runFilter(){
-      const s = (q.value || '').toLowerCase().trim();
-      let shown = 0;
-      for(const c of cards){
-        const name = (c.dataset.name || '').toLowerCase();
-        const ok = !s || name.includes(s);
-        c.style.display = ok ? '' : 'none';
-        if(ok) shown++;
-      }
-      empty.style.display = (shown === 0) ? '' : 'none';
+<script>
+/* ══════════════════════════════════════════════
+   ★ 유일하게 수정하는 부분: GitHub Pages 기본 URL
+   ══════════════════════════════════════════════ */
+const BASE = "https://315seconds.github.io/sales_report";
+
+const MAIN_MANIFEST  = BASE + "/main/manifest.json";
+const POPUP_MANIFEST = BASE + "/popup/manifest.json";
+
+/* ── 유틸 ── */
+function fmt(n){ return Number(n||0).toLocaleString('ko-KR'); }
+function fmtPct(n){ return (Number(n||0)*100).toFixed(1)+'%'; }
+function fmtWon(n){
+  const x = Number(n||0);
+  if(x>=1e8) return (x/1e8).toFixed(1)+'억원';
+  if(x>=1e4) return Math.round(x/1e4)+'만원';
+  return fmt(x)+'원';
+}
+async function fetchJSON(url){
+  try{
+    const r = await fetch(url,{cache:"no-store"});
+    if(!r.ok) return null;
+    return await r.json();
+  }catch(e){ return null; }
+}
+
+/* ══════════════════════════════════════════════
+   성수본점 섹션
+   ══════════════════════════════════════════════ */
+const tabsEl   = document.getElementById('mainTabs');
+const panelsEl = document.getElementById('mainPanels');
+let mainMetaList = [];
+
+function monthKpisHTML(m){
+  if(!m) return `<div class="no-data">데이터를 불러올 수 없습니다.</div>`;
+  const daily = m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0);
+  return `<div class="month-kpis">
+    <div class="month-kpi"><div class="k">월 총 매출</div><div class="v">${fmtWon(m.total_sales)}</div></div>
+    <div class="month-kpi"><div class="k">일 평균 매출</div><div class="v">${fmtWon(daily)}</div></div>
+    <div class="month-kpi"><div class="k">거래건수</div><div class="v">${fmt(m.total_cnt)}건</div></div>
+    <div class="month-kpi"><div class="k">해외 비중</div><div class="v">${fmtPct(m.foreign_share)}</div></div>
+    <div class="month-kpi"><div class="k">국내 매출</div><div class="v">${fmtWon(m.dom_sales)}</div></div>
+    <div class="month-kpi"><div class="k">해외 매출</div><div class="v">${fmtWon(m.for_sales)}</div></div>
+    <div class="month-kpi"><div class="k">피크타임</div><div class="v">${m.peak_hour!=null?m.peak_hour+'시':'—'}</div></div>
+    <div class="month-kpi"><div class="k">TOP 카테고리</div><div class="v">${m.top_category||'—'}</div></div>
+  </div>`;
+}
+
+async function buildMainSection(){
+  const manifest = await fetchJSON(MAIN_MANIFEST);
+  if(!manifest||!manifest.months||!manifest.months.length){
+    tabsEl.innerHTML=`<span class="no-data">등록된 월 데이터가 없습니다.</span>`;
+    return;
+  }
+  tabsEl.innerHTML=''; panelsEl.innerHTML='';
+  for(let i=0;i<manifest.months.length;i++){
+    const {label,url} = manifest.months[i];
+    const tab = document.createElement('button');
+    tab.className='tab'+(i===0?' active':'');
+    tab.textContent=label;
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('#mainTabs .tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.month-panel').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('mp-'+i).classList.add('active');
+    });
+    tabsEl.appendChild(tab);
+    const panel=document.createElement('div');
+    panel.className='month-panel'+(i===0?' active':'');
+    panel.id='mp-'+i;
+    panel.innerHTML=`<div class="loading">불러오는 중…</div>`;
+    panelsEl.appendChild(panel);
+    const meta=await fetchJSON(url);
+    mainMetaList.push({label,meta});
+    panel.innerHTML=monthKpisHTML(meta);
+  }
+  tryInsight();
+}
+
+/* ══════════════════════════════════════════════
+   인사이트
+   ══════════════════════════════════════════════ */
+let popupMetaList=[];
+
+function tryInsight(){
+  const mainMeta=mainMetaList.find(r=>r.meta)?.meta;
+  if(!mainMeta||popupMetaList.length===0) return;
+  const pn=popupMetaList.length;
+  const avgDaily=popupMetaList.reduce((a,m)=>a+(m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0)),0)/pn;
+  const avgFor=popupMetaList.reduce((a,m)=>a+(Number(m.foreign_share)||0),0)/pn;
+  const mainDaily=mainMeta.daily_avg_sales||(mainMeta.days?Math.round(mainMeta.total_sales/mainMeta.days):0);
+  const hc={};
+  for(const m of popupMetaList) if(m.peak_hour!=null){const k=String(m.peak_hour);hc[k]=(hc[k]||0)+1;}
+  const topH=Object.entries(hc).sort((a,b)=>b[1]-a[1])[0];
+  const items=[
+    {label:`본점 일평균 (${mainMetaList[0]?.label||''})`, value:fmtWon(mainDaily), cls:''},
+    {label:`팝업 일평균 (최근 ${pn}개 평균)`, value:fmtWon(avgDaily), cls:''},
+    {label:'본점 해외 비중', value:fmtPct(mainMeta.foreign_share), cls:'hl'},
+    {label:`팝업 해외 비중 (평균)`, value:fmtPct(avgFor), cls:'hl'},
+    {label:'본점 피크타임', value:mainMeta.peak_hour!=null?mainMeta.peak_hour+'시':'—', cls:'up'},
+    {label:'팝업 공통 피크타임', value:topH?topH[0]+'시':'—', cls:'up'},
+  ];
+  document.getElementById('insightGrid').innerHTML=items.map(it=>`
+    <div class="insight-item">
+      <div class="ik">${it.label}</div>
+      <div class="iv ${it.cls}">${it.value}</div>
+    </div>`).join('');
+  document.getElementById('insightBox').style.display='';
+}
+
+/* ══════════════════════════════════════════════
+   팝업 아카이브
+   ══════════════════════════════════════════════ */
+const gridEl=document.getElementById('grid');
+const emptyEl=document.getElementById('empty');
+const qEl=document.getElementById('q');
+
+function cardKpisHTML(m){
+  if(!m) return `<div class="no-data" style="grid-column:1/-1;font-size:11px;">데이터 없음</div>`;
+  const daily=m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0);
+  return `
+    <div class="ck"><div class="cl">일평균 매출</div><div class="cv">${fmtWon(daily)}</div></div>
+    <div class="ck"><div class="cl">해외 비중</div><div class="cv">${fmtPct(m.foreign_share)}</div></div>
+    <div class="ck"><div class="cl">피크타임</div><div class="cv">${m.peak_hour!=null?m.peak_hour+'시':'—'}</div></div>
+    <div class="ck"><div class="cl">TOP 카테고리</div><div class="cv">${m.top_category||'—'}</div></div>`;
+}
+
+function runFilter(){
+  const s=(qEl.value||'').toLowerCase().trim();
+  const cards=Array.from(document.querySelectorAll('.card'));
+  let shown=0;
+  for(const c of cards){
+    const ok=!s||(c.dataset.name||'').toLowerCase().includes(s);
+    c.style.display=ok?'':'none';
+    if(ok) shown++;
+  }
+  emptyEl.style.display=shown===0?'':'none';
+}
+qEl.addEventListener('input',runFilter);
+
+async function buildPopupSection(){
+  const manifest=await fetchJSON(POPUP_MANIFEST);
+  if(!manifest||!manifest.popups||!manifest.popups.length){
+    gridEl.innerHTML=`<span class="no-data">등록된 팝업 데이터가 없습니다.</span>`;
+    return;
+  }
+  gridEl.innerHTML='';
+  for(let i=0;i<manifest.popups.length;i++){
+    const {name,label,start,end,href,meta_url}=manifest.popups[i];
+    const card=document.createElement('a');
+    card.className='card'; card.href=href; card.dataset.name=name;
+    card.innerHTML=`
+      <div class="card-top">
+        <div class="card-title">${label}</div>
+        <div class="badges"><span class="badge period">${start} ~ ${end}</span></div>
+      </div>
+      <div class="card-kpis" id="ck-${i}"><div class="loading">로딩 중…</div></div>`;
+    gridEl.appendChild(card);
+    const meta=await fetchJSON(meta_url);
+    document.getElementById('ck-'+i).innerHTML=cardKpisHTML(meta);
+    if(meta){
+      popupMetaList.push(meta);
+      const b=card.querySelector('.badges');
+      if(meta.top_category) b.innerHTML+=`<span class="badge cat">${meta.top_category}</span>`;
+      if(meta.foreign_share>0.15) b.innerHTML+=`<span class="badge for">🌍 ${fmtPct(meta.foreign_share)}</span>`;
+      tryInsight();
     }
-    q.addEventListener('input', runFilter);
-    runFilter();
+  }
+  runFilter();
+}
 
-    // ----- v6 meta.json 기반 요약(국가 문장 제거) -----
-    const summaryList = document.getElementById('summaryList');
-
-    function fmtMoney(n){
-      const x = Number(n) || 0;
-      try { return x.toLocaleString('ko-KR'); } catch(e){ return String(x); }
-    }
-
-    async function loadMetas(){
-      const urls = cards.map(c => c.dataset.meta).filter(Boolean);
-      const N = Math.min(10, urls.length);
-      const metas = [];
-      for(let i=0;i<N;i++){
-        try{
-          const r = await fetch(urls[i], {cache:"no-store"});
-          if(!r.ok) continue;
-          metas.push(await r.json());
-        }catch(e){}
-      }
-      return metas;
-    }
-
-    function pickTopBySum(mapObj){
-      let best=null, bestV=-Infinity;
-      for(const [k,v] of Object.entries(mapObj)){
-        const nv = Number(v) || 0;
-        if(nv > bestV){ bestV = nv; best = k; }
-      }
-      return {key: best, value: bestV};
-    }
-
-    async function buildSummary(){
-      const metasAll = await loadMetas();
-      if(metasAll.length === 0){
-        summaryList.innerHTML = "<li>아직 요약할 리포트가 없어요. 첫 리포트를 올려주세요 ✨</li>";
-        return;
-      }
-
-      // 최근 종료된 팝업 n개 기준 (3개)
-      const metas = metasAll.slice(0, Math.min(3, metasAll.length));
-      const n = metas.length;
-
-      const avgForeign = metas.reduce((a,m)=>a+(Number(m.foreign_share)||0),0) / n;
-      const totalSales = metas.reduce((a,m)=>a+(Number(m.total_sales)||0),0);
-
-      // 피크타임(매출 합산): hour별 peak_sales 합으로 1등 hour
-      const hourSales = {};
-      for(const m of metas){
-        const h = m.peak_hour;
-        const s = Number(m.peak_sales) || 0;
-        if(h !== null && h !== undefined && s > 0){
-          const key = String(h);
-          hourSales[key] = (hourSales[key]||0) + s;
-        }
-      }
-      const topHourObj = pickTopBySum(hourSales);
-      const peakHour = topHourObj.key !== null ? Number(topHourObj.key) : null;
-
-      const lines = [];
-      lines.push(`최근 종료된 팝업 ${n}개를 한입에 요약했어요 ✨ 평균 해외 비중은 ${(avgForeign*100).toFixed(1)}% 🌍✨`);
-      if(peakHour !== null && !Number.isNaN(peakHour)){
-        lines.push(`피크타임은 ${peakHour}시! 손님이 가장 몰렸어요 🔥`);
-      }else{
-        lines.push(`피크타임은 집계 중이에요 🔥`);
-      }
-      lines.push(`총매출 합계 ${fmtMoney(totalSales)}원 달성! (대단해요 😎)`);
-
-      summaryList.innerHTML = lines.map(x => `<li>${x}</li>`).join("");
-    }
-
-    buildSummary();
-  </script>
+buildMainSection();
+buildPopupSection();
+</script>
 </body>
 </html>
