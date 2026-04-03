@@ -1,0 +1,24 @@
+{
+  "store": "차봇",
+  "start": "2026-02-04",
+  "end": "2026-02-09",
+  "days": 6,
+  "total_sales": 7898700,
+  "total_cnt": 191,
+  "daily_avg_sales": 1316450,
+  "dom_sales": 4162700,
+  "dom_cnt": 117,
+  "dom_share": 0.5270107739248231,
+  "for_sales": 3736000,
+  "for_cnt": 74,
+  "foreign_share": 0.4729892260751769,
+  "peak_hour": 16,
+  "peak_sales": 1186600,
+  "top_category": "자켓",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "중국",
+    "아이오로라"
+  ]
+}
