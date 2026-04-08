@@ -1,0 +1,24 @@
+{
+  "store": "무성",
+  "start": "2026-03-20",
+  "end": "2026-04-07",
+  "days": 19,
+  "total_sales": 42732000,
+  "total_cnt": 1184,
+  "daily_avg_sales": 2249052,
+  "dom_sales": 18295600,
+  "dom_cnt": 618,
+  "dom_share": 0.42814752410371615,
+  "for_sales": 24436400,
+  "for_cnt": 566,
+  "foreign_share": 0.5718524758962839,
+  "peak_hour": 15,
+  "peak_sales": 6119700,
+  "top_category": "스웻셔츠",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "아이오로라",
+    "중국"
+  ]
+}
