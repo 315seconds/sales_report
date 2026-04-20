@@ -1,0 +1,24 @@
+{
+  "store": "한칸",
+  "start": "2026-03-31",
+  "end": "2026-04-20",
+  "days": 21,
+  "total_sales": 7675600,
+  "total_cnt": 254,
+  "daily_avg_sales": 365504,
+  "dom_sales": 2763300,
+  "dom_cnt": 118,
+  "dom_share": 0.3600109437698682,
+  "for_sales": 4912300,
+  "for_cnt": 136,
+  "foreign_share": 0.6399890562301318,
+  "peak_hour": 17,
+  "peak_sales": 968500,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "아이오로라",
+    "중국"
+  ]
+}

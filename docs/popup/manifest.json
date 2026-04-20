@@ -1,6 +1,14 @@
 {
   "popups": [
     {
+      "name": "2026-03-31_2026-04-20_한칸",
+      "label": "한칸",
+      "start": "2026-03-31",
+      "end": "2026-04-20",
+      "href": "https://315seconds.github.io/sales_report/popup/2026-03-31_2026-04-20_한칸/",
+      "meta_url": "https://315seconds.github.io/sales_report/popup/2026-03-31_2026-04-20_한칸/meta.json"
+    },
+    {
       "name": "2026-03-20_2026-04-07_popup",
       "label": "무성",
       "start": "2026-03-20",
