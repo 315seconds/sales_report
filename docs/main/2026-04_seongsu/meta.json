@@ -1,0 +1,24 @@
+{
+  "store": "성수",
+  "start": "2026-04-01",
+  "end": "2026-04-30",
+  "days": 30,
+  "total_sales": 86905130,
+  "total_cnt": 1569,
+  "daily_avg_sales": 2896837,
+  "dom_sales": 49958640,
+  "dom_cnt": 1025,
+  "dom_share": 0.5748641075618897,
+  "for_sales": 36946490,
+  "for_cnt": 544,
+  "foreign_share": 0.4251358924381104,
+  "peak_hour": 15,
+  "peak_sales": 13620450,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "아이오로라",
+    "중국"
+  ]
+}
