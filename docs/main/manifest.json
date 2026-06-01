@@ -1,6 +1,11 @@
 {
   "months": [
     {
+      "label": "2026-05",
+      "url": "https://315seconds.github.io/sales_report/main/2026-05_seongsu/meta.json",
+      "href": "https://315seconds.github.io/sales_report/main/2026-05_seongsu/"
+    },
+    {
       "label": "2026-04",
       "url": "https://315seconds.github.io/sales_report/main/2026-04_seongsu/meta.json",
       "href": "https://315seconds.github.io/sales_report/main/2026-04_seongsu/"

@@ -1,0 +1,27 @@
+{
+  "store": "성수",
+  "start": "2026-05-01",
+  "end": "2026-05-31",
+  "days": 31,
+  "total_sales": 83373530,
+  "total_cnt": 1625,
+  "daily_avg_sales": 2689468,
+  "dom_sales": 50797490,
+  "dom_cnt": 1107,
+  "dom_share": 0.6092759896336404,
+  "for_sales": 32576040,
+  "for_cnt": 518,
+  "foreign_share": 0.3907240103663597,
+  "peak_hour": 16,
+  "peak_sales": 13009850,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "아이오로라",
+    "중국",
+    "한패스"
+  ]
+}
