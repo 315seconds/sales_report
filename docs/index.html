@@ -251,16 +251,32 @@ async function buildMainSection(){
    위치별 해외 비중 테이블
    ══════════════════════════════════════════════ */
 function buildLocationTable(){
-  const rows=[];
+  // 팝업: store명으로 그루핑
+  const groups={};
   for(const m of popupMetaList){
     if(!m.location) continue;
-    const daily=m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0);
-    rows.push({store:m.store,location:m.location,period:`${m.start} ~ ${m.end}`,share:Number(m.foreign_share||0),daily,isMain:false});
+    const k=m.store;
+    if(!groups[k]) groups[k]={store:m.store,location:m.location,entries:[]};
+    groups[k].entries.push(m);
   }
-  for(const {label,meta} of mainMetaList){
-    if(!meta||!meta.location) continue;
-    const daily=meta.daily_avg_sales||(meta.days?Math.round(meta.total_sales/meta.days):0);
-    rows.push({store:`성수 (${label})`,location:meta.location,period:`${meta.start} ~ ${meta.end}`,share:Number(meta.foreign_share||0),daily,isMain:true});
+  const rows=[];
+  for(const g of Object.values(groups)){
+    const n=g.entries.length;
+    const avgShare=g.entries.reduce((a,m)=>a+Number(m.foreign_share||0),0)/n;
+    const avgDaily=g.entries.reduce((a,m)=>a+(m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0)),0)/n;
+    const starts=g.entries.map(m=>m.start).sort();
+    const ends=g.entries.map(m=>m.end).sort();
+    const period=n===1?`${starts[0]} ~ ${ends[n-1]}`:`${starts[0]} ~ ${ends[n-1]} (${n}회)`;
+    rows.push({store:g.store,location:g.location,period,share:avgShare,daily:avgDaily,isMain:false});
+  }
+  // 본점: 최근 3개월 평균
+  const mainWithLoc=mainMetaList.filter(({meta})=>meta&&meta.location);
+  if(mainWithLoc.length>0){
+    const recent=mainWithLoc.slice(0,3);
+    const n=recent.length;
+    const avgShare=recent.reduce((a,{meta})=>a+Number(meta.foreign_share||0),0)/n;
+    const avgDaily=recent.reduce((a,{meta})=>a+(meta.daily_avg_sales||(meta.days?Math.round(meta.total_sales/meta.days):0)),0)/n;
+    rows.push({store:recent[0].meta.store,location:recent[0].meta.location,period:`최근 ${n}개월 평균`,share:avgShare,daily:avgDaily,isMain:true});
   }
   if(rows.length===0) return;
   rows.sort((a,b)=>b.share-a.share);
