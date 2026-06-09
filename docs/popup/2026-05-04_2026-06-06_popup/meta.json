@@ -1,0 +1,26 @@
+{
+  "store": "연오",
+  "start": "2026-05-04",
+  "end": "2026-06-06",
+  "days": 34,
+  "total_sales": 25569200,
+  "total_cnt": 832,
+  "daily_avg_sales": 752035,
+  "dom_sales": 15812000,
+  "dom_cnt": 584,
+  "dom_share": 0.6184002628162008,
+  "for_sales": 9757200,
+  "for_cnt": 248,
+  "foreign_share": 0.38159973718379925,
+  "peak_hour": 18,
+  "peak_sales": 3635200,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "중국",
+    "아이오로라"
+  ]
+}
