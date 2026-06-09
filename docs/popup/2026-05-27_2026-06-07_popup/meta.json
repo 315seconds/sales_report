@@ -1,0 +1,26 @@
+{
+  "store": "삼성",
+  "start": "2026-05-27",
+  "end": "2026-06-07",
+  "days": 12,
+  "total_sales": 31445900,
+  "total_cnt": 722,
+  "daily_avg_sales": 2620491,
+  "dom_sales": 14029200,
+  "dom_cnt": 397,
+  "dom_share": 0.4461376522853536,
+  "for_sales": 17416700,
+  "for_cnt": 325,
+  "foreign_share": 0.5538623477146464,
+  "peak_hour": 15,
+  "peak_sales": 3784700,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "중국",
+    "아이오로라"
+  ]
+}
