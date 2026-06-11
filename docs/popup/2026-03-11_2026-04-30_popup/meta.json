@@ -1,0 +1,27 @@
+{
+  "store": "연무장",
+  "start": "2026-03-11",
+  "end": "2026-04-30",
+  "days": 51,
+  "total_sales": 15642000,
+  "total_cnt": 551,
+  "daily_avg_sales": 306705,
+  "dom_sales": 6957000,
+  "dom_cnt": 306,
+  "dom_share": 0.4447640966628308,
+  "for_sales": 8685000,
+  "for_cnt": 245,
+  "foreign_share": 0.5552359033371692,
+  "peak_hour": 15,
+  "peak_sales": 2118200,
+  "top_category": "스웻셔츠",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "아이오로라",
+    "중국"
+  ],
+  "location": "서울 성동구 성수이로7가길 13 1층"
+}
