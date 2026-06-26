@@ -1,0 +1,27 @@
+{
+  "store": "뚝도",
+  "start": "2026-06-19",
+  "end": "2026-06-26",
+  "days": 8,
+  "total_sales": 1022500,
+  "total_cnt": 46,
+  "daily_avg_sales": 127812,
+  "dom_sales": 429600,
+  "dom_cnt": 30,
+  "dom_share": 0.4201466992665037,
+  "for_sales": 592900,
+  "for_cnt": 16,
+  "foreign_share": 0.5798533007334963,
+  "peak_hour": 20,
+  "peak_sales": 173700,
+  "top_category": "셔츠",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "중국",
+    "아이오로라"
+  ],
+  "location": "서울 성동구 뚝섬로 403"
+}
