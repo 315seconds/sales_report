@@ -103,6 +103,17 @@
     .badge.period{background:#eef2ff;color:#3730a3;}
     .badge.cat{background:#fdf4ff;color:#7e22ce;}
     .badge.for{background:#fff7ed;color:#c2410c;}
+    .date-list{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+    .date-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:7px 10px;border-radius:10px;
+      background:#f9fafb;border:1px solid var(--line);
+      text-decoration:none;color:#111;font-size:12px;
+      transition:background .1s;
+    }
+    .date-row:hover{background:#f0f2f5;}
+    .date-range{font-weight:700;}
+    .date-meta{color:var(--muted);font-size:11px;}
     .empty{padding:14px 16px;color:var(--muted);font-size:13px;display:none;}
     .loading{color:var(--muted);font-size:12px;font-style:italic;}
     .no-data{color:#9ca3af;font-size:12px;}
@@ -333,16 +344,6 @@ const gridEl=document.getElementById('grid');
 const emptyEl=document.getElementById('empty');
 const qEl=document.getElementById('q');
 
-function cardKpisHTML(m){
-  if(!m) return `<div class="no-data" style="grid-column:1/-1;font-size:11px;">데이터 없음</div>`;
-  const daily=m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0);
-  return `
-    <div class="ck"><div class="cl">일평균 매출</div><div class="cv">${fmtWon(daily)}</div></div>
-    <div class="ck"><div class="cl">해외 비중</div><div class="cv">${fmtPct(m.foreign_share)}</div></div>
-    <div class="ck"><div class="cl">피크타임</div><div class="cv">${m.peak_hour!=null?m.peak_hour+'시':'—'}</div></div>
-    <div class="ck"><div class="cl">TOP 카테고리</div><div class="cv">${m.top_category||'—'}</div></div>`;
-}
-
 function runFilter(){
   const s=(qEl.value||'').toLowerCase().trim();
   const cards=Array.from(document.querySelectorAll('.card'));
@@ -364,32 +365,62 @@ async function buildPopupSection(){
     gridEl.innerHTML=`<span class="no-data">등록된 팝업 데이터가 없습니다.</span>`;
     return;
   }
+  const popups=manifest.popups;
+  const metas=await Promise.all(popups.map(p=>fetchJSON(p.meta_url)));
+  for(const m of metas) if(m) popupMetaList.push(m);
+  tryInsight();
+  buildLocationTable();
+
+  // 지점(label)별 그루핑 — manifest 순서(최신순) 유지
+  const groups={};
+  const groupOrder=[];
+  for(let i=0;i<popups.length;i++){
+    const {name,label,start,end,href}=popups[i];
+    if(!groups[label]){ groups[label]={label,runs:[]}; groupOrder.push(label); }
+    groups[label].runs.push({name,start,end,href,meta:metas[i]});
+  }
+
   gridEl.innerHTML='';
-  for(let i=0;i<manifest.popups.length;i++){
-    const {name,label,start,end,href,meta_url}=manifest.popups[i];
-    const card=document.createElement('a');
-    card.className='card'; card.href=href; card.dataset.name=name;
-    // 한글 label, 영문 slug, 날짜 모두 검색 가능하도록
-    card.dataset.search=`${label} ${name} ${start} ${end}`.toLowerCase();
+  for(const label of groupOrder){
+    const {runs}=groups[label];
+    const n=runs.length;
+    const validMetas=runs.map(r=>r.meta).filter(Boolean);
+    const avgDaily=validMetas.length
+      ? validMetas.reduce((a,m)=>a+(m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0)),0)/validMetas.length
+      : 0;
+    const avgFor=validMetas.length
+      ? validMetas.reduce((a,m)=>a+Number(m.foreign_share||0),0)/validMetas.length
+      : 0;
+
+    const searchText=[label,...runs.map(r=>`${r.name} ${r.start} ${r.end}`)].join(' ').toLowerCase();
+
+    const dateRowsHTML=runs.map(r=>{
+      const m=r.meta;
+      const daily=m?(m.daily_avg_sales||(m.days?Math.round(m.total_sales/m.days):0)):null;
+      const kpiStr=m?`${fmtWon(daily)} · 해외 ${fmtPct(m.foreign_share)}`:'데이터 없음';
+      return `<a class="date-row" href="${r.href}">
+        <span class="date-range">${r.start} ~ ${r.end}</span>
+        <span class="date-meta">${kpiStr}</span>
+      </a>`;
+    }).join('');
+
+    const card=document.createElement('div');
+    card.className='card';
+    card.dataset.search=searchText;
     card.innerHTML=`
       <div class="card-top">
         <div class="card-title">${label}</div>
-        <div class="badges"><span class="badge period">${start} ~ ${end}</span></div>
+        ${n>1?`<span class="badge">${n}회</span>`:''}
       </div>
-      <div class="card-kpis" id="ck-${i}"><div class="loading">로딩 중…</div></div>`;
+      ${validMetas.length?`
+      <div class="card-kpis">
+        <div class="ck"><div class="cl">일평균 매출${n>1?' (평균)':''}</div><div class="cv">${fmtWon(avgDaily)}</div></div>
+        <div class="ck"><div class="cl">해외 비중${n>1?' (평균)':''}</div><div class="cv">${fmtPct(avgFor)}</div></div>
+      </div>`:''}
+      <div class="date-list">${dateRowsHTML}</div>`;
     gridEl.appendChild(card);
-    const meta=await fetchJSON(meta_url);
-    document.getElementById('ck-'+i).innerHTML=cardKpisHTML(meta);
-    if(meta){
-      popupMetaList.push(meta);
-      const b=card.querySelector('.badges');
-      if(meta.top_category) b.innerHTML+=`<span class="badge cat">${meta.top_category}</span>`;
-      if(meta.foreign_share>0.15) b.innerHTML+=`<span class="badge for">🌍 ${fmtPct(meta.foreign_share)}</span>`;
-      tryInsight();
-    }
   }
   runFilter();
-  buildLocationTable();
 }
 
 buildMainSection();
