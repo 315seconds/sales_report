@@ -1,6 +1,14 @@
 {
   "popups": [
     {
+      "name": "2026-06-02_2026-06-22_popup",
+      "label": "한칸",
+      "start": "2026-06-02",
+      "end": "2026-06-22",
+      "href": "https://315seconds.github.io/sales_report/popup/2026-06-02_2026-06-22_popup/",
+      "meta_url": "https://315seconds.github.io/sales_report/popup/2026-06-02_2026-06-22_popup/meta.json"
+    },
+    {
       "name": "2026-06-19_2026-06-26_뚝도",
       "label": "뚝도",
       "start": "2026-06-19",

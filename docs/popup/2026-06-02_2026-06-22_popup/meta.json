@@ -1,0 +1,27 @@
+{
+  "store": "한칸",
+  "start": "2026-06-02",
+  "end": "2026-06-22",
+  "days": 21,
+  "total_sales": 4059900,
+  "total_cnt": 147,
+  "daily_avg_sales": 193328,
+  "dom_sales": 2338300,
+  "dom_cnt": 90,
+  "dom_share": 0.5759501465553338,
+  "for_sales": 1721600,
+  "for_cnt": 57,
+  "foreign_share": 0.4240498534446661,
+  "peak_hour": 23,
+  "peak_sales": 601500,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "아이오로라",
+    "중국"
+  ],
+  "location": ""
+}
