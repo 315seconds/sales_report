@@ -1,0 +1,27 @@
+{
+  "store": "리얼",
+  "start": "2026-06-02",
+  "end": "2026-06-14",
+  "days": 13,
+  "total_sales": 8999800,
+  "total_cnt": 304,
+  "daily_avg_sales": 692292,
+  "dom_sales": 5581500,
+  "dom_cnt": 208,
+  "dom_share": 0.6201804484544101,
+  "for_sales": 3418300,
+  "for_cnt": 96,
+  "foreign_share": 0.3798195515455899,
+  "peak_hour": 16,
+  "peak_sales": 1178900,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "중국",
+    "아이오로라"
+  ],
+  "location": ""
+}
