@@ -1,0 +1,27 @@
+{
+  "store": "연무장",
+  "start": "2026-06-15",
+  "end": "2026-06-30",
+  "days": 16,
+  "total_sales": 4159000,
+  "total_cnt": 140,
+  "daily_avg_sales": 259937,
+  "dom_sales": 1918700,
+  "dom_cnt": 84,
+  "dom_share": 0.4613368598220726,
+  "for_sales": 2240300,
+  "for_cnt": 56,
+  "foreign_share": 0.5386631401779274,
+  "peak_hour": 16,
+  "peak_sales": 831100,
+  "top_category": "반팔티",
+  "foreign_keywords": [
+    "해외",
+    "오렌지스퀘어",
+    "알리페이",
+    "위챗페이",
+    "아이오로라",
+    "중국"
+  ],
+  "location": "서울 성동구 성수이로7가길 13 1층"
+}
